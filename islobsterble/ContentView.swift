@@ -27,9 +27,6 @@ struct ContentView: View {
         }
     }
 }
-func dummy(location: CGPoint, letter: Letter) {
-    
-}
 
 var previewBoardSlots = SlotGrid(num_rows: NUM_BOARD_ROWS, num_columns: NUM_BOARD_COLUMNS)
 var previewRackSlots = SlotRow(num_slots: NUM_RACK_TILES)
@@ -58,6 +55,67 @@ enum FrontTaker {
     case rack
 }
 
+class BlankCharacter: ObservableObject {
+    @Published var blankCharacter = Character("A")
+}
+
+struct BlankPicker: View {
+    
+    var onSelection: ((Character) -> Void)
+    
+    let alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    
+    var body: some View {
+        VStack {
+            HStack {
+                ForEach(0..<6) { index in
+                    Button(action: {
+                        self.onSelection(Character(self.alphabet[index]))
+                    }) {
+                        Text(self.alphabet[index])
+                    }
+                }
+            }
+            HStack {
+                ForEach(6..<12) { index in
+                    Button(action: {
+                        self.onSelection(Character(self.alphabet[index]))
+                    }) {
+                        Text(self.alphabet[index])
+                    }
+                }
+            }
+            HStack {
+                ForEach(12..<18) { index in
+                    Button(action: {
+                        self.onSelection(Character(self.alphabet[index]))
+                    }) {
+                        Text(self.alphabet[index])
+                    }
+                }
+            }
+            HStack {
+                ForEach(18..<24) { index in
+                    Button(action: {
+                        self.onSelection(Character(self.alphabet[index]))
+                    }) {
+                        Text(self.alphabet[index])
+                    }
+                }
+            }
+            HStack {
+                ForEach(24..<26) { index in
+                    Button(action: {
+                        self.onSelection(Character(self.alphabet[index]))
+                    }) {
+                        Text(self.alphabet[index])
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct PlaySpace: View {
     let width: Int
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
@@ -65,6 +123,8 @@ struct PlaySpace: View {
     @State private var rackLetters: [Letter] = initial_letters()
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
+    @State private var showBlankPicker = false
+    @State private var currentBlank: Character = Character("A")
     
     @EnvironmentObject var boardSlots: SlotGrid
     @EnvironmentObject var rackSlots: SlotRow
@@ -77,13 +137,19 @@ struct PlaySpace: View {
                 RackBackground(rackSquares: setupRackSquares())
             }
             VStack(spacing: 20) {
-                BoardForeground(tiles: setupBoardTiles()).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
+                BoardForeground(tiles: setupBoardTiles(), locked: self.locked).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
                 RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState()).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
             }
+        }.sheet(isPresented: $showBlankPicker) {
+            BlankPicker(onSelection: self.setBlank)
         }
     }
     
-    func nearestEmpty(newIndex: Int, originalIndex: Int?) -> Int {
+    func setBlank(choice: Character) {
+        self.currentBlank = choice
+    }
+    
+    func nearestRackEmpty(newIndex: Int, originalIndex: Int?) -> Int {
         for delta in 0..<NUM_RACK_TILES {
             if newIndex + delta < NUM_RACK_TILES {
                 if newIndex + delta == originalIndex {
@@ -111,6 +177,39 @@ struct PlaySpace: View {
         return -1
     }
     
+    func nearestBoardEmpty(targetRow: Int, targetColumn: Int) -> (Int, Int) {
+        var vis = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
+        let rowQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
+        let columnQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
+        
+        rowQueue.offer(targetRow)
+        columnQueue.offer(targetColumn)
+        let dr = [1, 0, -1, 0]
+        let dc = [0, 1, 0, -1]
+        
+        vis[targetRow][targetColumn] = true
+        while rowQueue.getSize() > 0 {
+            let currRow = rowQueue.poll()!
+            let currColumn = columnQueue.poll()!
+            if self.boardLetters[currRow][currColumn] == INVISIBLE_LETTER {
+                return (currRow, currColumn)
+            }
+            for index in 0..<4 {
+                let nextRow = currRow + dr[index]
+                let nextColumn = currColumn + dc[index]
+                if nextRow < 0 || nextRow >= NUM_BOARD_ROWS || nextColumn < 0 || nextColumn >= NUM_BOARD_COLUMNS {
+                    continue
+                }
+                if !vis[nextRow][nextColumn] {
+                    vis[nextRow][nextColumn] = true
+                    rowQueue.offer(nextRow)
+                    columnQueue.offer(nextColumn)
+                }
+            }
+        }
+        return (-1, -1)
+    }
+    
     
     func readDragIndex(index: Int, originalIndex: Int?) -> Letter {
         if originalIndex != nil && index == originalIndex! {
@@ -126,9 +225,8 @@ struct PlaySpace: View {
         }
     }
     
-    
     func shiftRack(newIndex: Int, originalIndex: Int?) {
-        let nearestEmptyIndex = nearestEmpty(newIndex: newIndex, originalIndex: originalIndex)
+        let nearestEmptyIndex = nearestRackEmpty(newIndex: newIndex, originalIndex: originalIndex)
         
         var start = newIndex + 1
         let end = nearestEmptyIndex
@@ -168,15 +266,24 @@ struct PlaySpace: View {
         }
         return Position(boardRow: nil, boardColumn: nil, rackIndex: nil)
     }
+    
     func tileDropped(letter: Letter, startPosition: Position, endPosition: Position) {
         self.frontTaker = FrontTaker.unknown
         if endPosition.boardRow != nil && endPosition.boardColumn != nil {
+            let endPair = nearestBoardEmpty(targetRow: endPosition.boardRow!, targetColumn: endPosition.boardColumn!)
+            let endRow = endPair.0
+            let endColumn = endPair.1
             if startPosition.rackIndex != nil {
                 self.rackLetters[startPosition.rackIndex!] = INVISIBLE_LETTER
             } else {
                 self.boardLetters[startPosition.boardRow!][startPosition.boardColumn!] = INVISIBLE_LETTER
             }
-            self.boardLetters[endPosition.boardRow!][endPosition.boardColumn!] = letter
+            var modifiedLetter = letter
+            if letter.is_blank && letter.letter == BLANK {
+                self.showBlankPicker.toggle()
+                modifiedLetter = Letter(letter: self.currentBlank, is_blank: true, value: letter.value)
+            }
+            self.boardLetters[endRow][endColumn] = modifiedLetter
         } else if endPosition.rackIndex != nil {
             if startPosition.rackIndex != nil {
                 self.rackLetters[startPosition.rackIndex!] = INVISIBLE_LETTER
@@ -275,188 +382,53 @@ struct PlaySpace: View {
     
 }
 
-struct Letter: Equatable {
-    let letter: Character
-    let is_blank: Bool
-    let value: Int?
-    
-    init(letter: Character, is_blank: Bool) {
-        self.letter = letter
-        self.is_blank = is_blank
-        self.value = nil
-    }
-    static func ==(lhs: Letter, rhs: Letter) -> Bool {
-        return lhs.letter == rhs.letter && lhs.is_blank == rhs.is_blank && lhs.value == rhs.value
-    }
-}
 
-struct Position {
-    let boardRow: Int?
-    let boardColumn: Int?
-    let rackIndex: Int?
-}
 
-struct Tile: View {
-    @State private var dragAmount = CGSize.zero
-    @State private var dragState = Position(boardRow: nil, boardColumn: nil, rackIndex: nil)
+
+class IntQueue {
+    // This implementation is not safe against exceeding
+    // the initially specified size.
+    let maxSize: Int
+    private var front: Int
+    private var back: Int
+    private var q: [Int?]
     
-    let size: Int
-    let face: Letter
-    let position: Position
-    var onChanged: ((CGPoint, Letter, Position) -> Position)
-    var onEnded: ((Letter, Position, Position) -> Void)
-    
-    
-    var body: some View {
-        Text(self.face.is_blank ? "" : String(self.face.letter))
-            .frame(width: CGFloat(self.size), height: CGFloat(self.size))
-            .background(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(self.face == INVISIBLE_LETTER ? Color(.clear) : Color(.yellow))
-            )
-            .offset(self.dragAmount)
-            .zIndex(self.dragAmount == .zero ? 0 : 1)
-            .gesture(
-                DragGesture(coordinateSpace: .global)
-                    .onChanged { gesture in
-                        self.dragAmount = gesture.translation
-                        self.dragState = self.onChanged(gesture.location, self.face, self.position)
-                    }
-                .onEnded { gesture in
-                    self.dragAmount = .zero
-                    self.onEnded(self.face, self.position, self.dragState)
-                }
-            )
+    init(maxSize: Int) {
+        self.maxSize = maxSize
+        self.q = [Int?](repeating: nil, count: maxSize)
+        self.front = 0
+        self.back = maxSize - 1
     }
     
-    func isInvisible() -> Bool {
-        return self.face == INVISIBLE_LETTER
-    }
-}
-
-struct RackSquare: View {
-    let size: Int
-    let color: Color
-    let index: Int
-    @EnvironmentObject var rackSlots: SlotRow
- 
-    var body: some View {
-        Rectangle()
-            .fill(self.color)
-            .frame(width: CGFloat(self.size), height: CGFloat(self.size))
-            .overlay(
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear {
-                            self.rackSlots.slots[self.index] = geo.frame(in: .global)
-                    }
-                }
-            )
-    }
-}
-
-struct RackBackground: View {
-    var rackSquares: [RackSquare]
-    @EnvironmentObject var rackSlots: SlotRow
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(0..<NUM_RACK_TILES) { tileIndex in
-                self.rackSquares[tileIndex]
+    func getSize() -> Int {
+        if back < front {
+            let diff = back + maxSize - front + 1
+            if diff == maxSize {
+                return self.q[front] == nil ? 0 : maxSize
             }
+            return diff
         }
-    }
-}
-
-struct RackForeground: View {
-    var tiles: [Tile]
-    var shuffleState: [Tile]
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(0..<self.tiles.count) { tileIndex in
-                ZStack {
-                    self.shuffleState[tileIndex]
-                    self.tiles[tileIndex]
-                }
-            }
+        let diff = back - front + 1
+        if diff == maxSize {
+            return self.q[front] == nil ? 0 : maxSize
         }
+        return diff
     }
-}
-
-struct BoardSquare: View {
-    
-    let size: Int
-    let color: Color
-    let row: Int
-    let column: Int
-    @EnvironmentObject var boardSlots: SlotGrid
-    
-    var body: some View {
-        Rectangle()
-            .fill(self.color)
-            .border(Color.black)
-            .frame(width: CGFloat(size), height: CGFloat(size))
-            .overlay(
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear {
-                            self.boardSlots.grid[self.row][self.column] = geo.frame(in: .global)
-                    }
-                }
-            )
-    }
-}
-
-struct BoardBackground: View {
-    let boardSquares: [[BoardSquare]]
-    @EnvironmentObject var boardSlots: SlotGrid
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            ForEach(0..<self.boardSquares.count) { row in
-                HStack(spacing: 0) {
-                    ForEach(0..<self.boardSquares[0].count) { column in
-                        self.boardSquares[row][column]
-                    }
-                }
-            }
-        }.border(Color.black, width: 2)
-    }
-}
-
-struct BoardForeground: View {
-    let tiles: [[Tile]]
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            ForEach(0..<NUM_BOARD_ROWS) { row in
-                HStack(spacing: 0) {
-                    ForEach(0..<NUM_BOARD_COLUMNS) { column in
-                        self.tiles[row][column]
-                    }
-                }
-            }
+    func offer(_ val: Int) {
+        self.back += 1
+        if self.back >= maxSize {
+            self.back -= maxSize
         }
+        assert(self.q[self.back] == nil, "The queue is too small!")
+        self.q[self.back] = val
+    }
+    func poll() -> Int? {
+        let val = self.q[self.front]
+        self.q[self.front] = nil
+        self.front += 1
+        if self.front >= maxSize {
+            self.front -= maxSize
+        }
+        return val
     }
 }
-
-class SlotGrid: ObservableObject {
-    @Published var grid: [[CGRect]]
-    
-    init(num_rows: Int, num_columns: Int) {
-        self.grid = [[CGRect]](repeating: [CGRect](repeating: .zero, count: num_columns), count: num_rows)
-    }
-}
-
-class SlotRow: ObservableObject {
-    @Published var slots: [CGRect]
-    
-    init(num_slots: Int) {
-        self.slots = [CGRect](repeating: .zero, count: num_slots)
-    }
-}
-
-
-
-
