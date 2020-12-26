@@ -9,15 +9,16 @@
 import SwiftUI
 
 struct RackForeground: View {
-    var tiles: [Tile]
-    var shuffleState: [Tile]
+    let tiles: [Tile]
+    let shuffleState: [Tile]
+    let showingBlankPicker: Bool
     
     var body: some View {
         HStack(spacing: 0) {
             ForEach(0..<self.tiles.count) { tileIndex in
                 ZStack {
-                    self.shuffleState[tileIndex]
-                    self.tiles[tileIndex]
+                    self.shuffleState[tileIndex].allowsHitTesting(false)
+                    self.tiles[tileIndex].allowsHitTesting((self.tiles[tileIndex].face != INVISIBLE_LETTER && !self.showingBlankPicker))
                 }
             }
         }

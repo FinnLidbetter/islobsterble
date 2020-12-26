@@ -20,7 +20,8 @@ struct Tile: View {
     
     
     var body: some View {
-        Text(self.face.is_blank ? "" : String(self.face.letter))
+        Text(self.face.letter == BLANK ? "" : String(self.face.letter))
+            .foregroundColor(self.face.is_blank ? Color.red : Color.black)
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .background(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-let screenSize: CGRect = UIScreen.main.bounds
+let SCREEN_SIZE: CGRect = UIScreen.main.bounds
 
 let BLANK = Character("-")
 let INVISIBLE = Character(" ")
@@ -23,7 +23,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            PlaySpace(width: Int(screenSize.width))
+            PlaySpace(width: Int(SCREEN_SIZE.width))
         }
     }
 }
@@ -55,66 +55,6 @@ enum FrontTaker {
     case rack
 }
 
-class BlankCharacter: ObservableObject {
-    @Published var blankCharacter = Character("A")
-}
-
-struct BlankPicker: View {
-    
-    var onSelection: ((Character) -> Void)
-    
-    let alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-    
-    var body: some View {
-        VStack {
-            HStack {
-                ForEach(0..<6) { index in
-                    Button(action: {
-                        self.onSelection(Character(self.alphabet[index]))
-                    }) {
-                        Text(self.alphabet[index])
-                    }
-                }
-            }
-            HStack {
-                ForEach(6..<12) { index in
-                    Button(action: {
-                        self.onSelection(Character(self.alphabet[index]))
-                    }) {
-                        Text(self.alphabet[index])
-                    }
-                }
-            }
-            HStack {
-                ForEach(12..<18) { index in
-                    Button(action: {
-                        self.onSelection(Character(self.alphabet[index]))
-                    }) {
-                        Text(self.alphabet[index])
-                    }
-                }
-            }
-            HStack {
-                ForEach(18..<24) { index in
-                    Button(action: {
-                        self.onSelection(Character(self.alphabet[index]))
-                    }) {
-                        Text(self.alphabet[index])
-                    }
-                }
-            }
-            HStack {
-                ForEach(24..<26) { index in
-                    Button(action: {
-                        self.onSelection(Character(self.alphabet[index]))
-                    }) {
-                        Text(self.alphabet[index])
-                    }
-                }
-            }
-        }
-    }
-}
 
 struct PlaySpace: View {
     let width: Int
@@ -124,7 +64,8 @@ struct PlaySpace: View {
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     @State private var showBlankPicker = false
-    @State private var currentBlank: Character = Character("A")
+    @State private var prevBlankRow: Int? = nil
+    @State private var prevBlankColumn: Int? = nil
     
     @EnvironmentObject var boardSlots: SlotGrid
     @EnvironmentObject var rackSlots: SlotRow
@@ -137,16 +78,21 @@ struct PlaySpace: View {
                 RackBackground(rackSquares: setupRackSquares())
             }
             VStack(spacing: 20) {
-                BoardForeground(tiles: setupBoardTiles(), locked: self.locked).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
-                RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState()).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
+                BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingBlankPicker: self.showBlankPicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
+                RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingBlankPicker: self.showBlankPicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
             }
-        }.sheet(isPresented: $showBlankPicker) {
-            BlankPicker(onSelection: self.setBlank)
+            BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
         }
     }
     
     func setBlank(choice: Character) {
-        self.currentBlank = choice
+        self.showBlankPicker = false
+        let prevLetter = self.boardLetters[prevBlankRow!][prevBlankColumn!]
+        assert(prevLetter.is_blank)
+        assert(prevLetter.letter == BLANK)
+        self.boardLetters[prevBlankRow!][prevBlankColumn!] = Letter(letter: choice, is_blank: true, value: prevLetter.value)
+        self.prevBlankRow = nil
+        self.prevBlankColumn = nil
     }
     
     func nearestRackEmpty(newIndex: Int, originalIndex: Int?) -> Int {
@@ -275,15 +221,15 @@ struct PlaySpace: View {
             let endColumn = endPair.1
             if startPosition.rackIndex != nil {
                 self.rackLetters[startPosition.rackIndex!] = INVISIBLE_LETTER
+                if letter.is_blank {
+                    self.showBlankPicker.toggle()
+                    self.prevBlankRow = endRow
+                    self.prevBlankColumn = endColumn
+                }
             } else {
                 self.boardLetters[startPosition.boardRow!][startPosition.boardColumn!] = INVISIBLE_LETTER
             }
-            var modifiedLetter = letter
-            if letter.is_blank && letter.letter == BLANK {
-                self.showBlankPicker.toggle()
-                modifiedLetter = Letter(letter: self.currentBlank, is_blank: true, value: letter.value)
-            }
-            self.boardLetters[endRow][endColumn] = modifiedLetter
+            self.boardLetters[endRow][endColumn] = letter
         } else if endPosition.rackIndex != nil {
             if startPosition.rackIndex != nil {
                 self.rackLetters[startPosition.rackIndex!] = INVISIBLE_LETTER
@@ -291,7 +237,21 @@ struct PlaySpace: View {
             }
             if startPosition.boardRow != nil && startPosition.boardColumn != nil {
                 self.boardLetters[startPosition.boardRow!][startPosition.boardColumn!] = INVISIBLE_LETTER
-                self.rackLetters[endPosition.rackIndex!] = letter
+                var modifiedLetter = letter
+                if letter.is_blank {
+                    modifiedLetter = Letter(letter: BLANK, is_blank: true, value: letter.value)
+                }
+                self.rackLetters[endPosition.rackIndex!] = modifiedLetter
+            }
+        } else {
+            if startPosition.rackIndex != nil && self.rackShuffleState[startPosition.rackIndex!] != INVISIBLE_LETTER {
+                // Make sure that we are not losing the dragged tile.
+                for index in 0..<NUM_RACK_TILES {
+                    if self.rackLetters[index] == INVISIBLE_LETTER {
+                        self.rackLetters[index] = letter
+                        break
+                    }
+                }
             }
         }
         for index in 0..<NUM_RACK_TILES {
