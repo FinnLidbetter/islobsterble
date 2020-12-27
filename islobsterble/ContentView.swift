@@ -37,7 +37,7 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-func initial_letters() -> [Letter] {
+func initialLetters() -> [Letter] {
     var rackLetters: [Letter] = []
     rackLetters.append(Letter(letter: Character("A"), is_blank: false))
     rackLetters.append(Letter(letter: Character("B"), is_blank: false))
@@ -47,6 +47,9 @@ func initial_letters() -> [Letter] {
     rackLetters.append(Letter(letter: Character("-"), is_blank: true))
     rackLetters.append(Letter(letter: Character("-"), is_blank: true))
     return rackLetters
+}
+func initialScores() -> [String: Int] {
+    return ["Player 1": 100, "Player 2": 101]
 }
 
 enum FrontTaker {
@@ -64,10 +67,11 @@ enum FrontTaker {
 
 struct PlaySpace: View {
     let width: Int
+    @State private var scores: [String: Int] = initialScores()
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var rackTilesOnBoardCount: Int = 0
-    @State private var rackLetters: [Letter] = initial_letters()
+    @State private var rackLetters: [Letter] = initialLetters()
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     
@@ -88,6 +92,8 @@ struct PlaySpace: View {
     var body: some View {
         NavigationView {
             VStack {
+                ScorePanel(scores: self.scores)
+                Spacer()
                 ZStack {
                     VStack(spacing: 20) {
                         BoardBackground(boardSquares: setupBoardSquares())

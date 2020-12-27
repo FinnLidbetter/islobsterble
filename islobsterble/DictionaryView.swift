@@ -14,9 +14,15 @@ struct DictionaryView: View {
     var body: some View {
         NavigationView() {
             VStack {
-                TextField("Lookup", text: $queryWord)
+                TextField("", text: $queryWord)
+                    .background(
+                        Rectangle().fill(Color.white).border(Color.black, width: 2))
+                    .padding()
                 Button(action: self.submitQueryWord) {
-                    Text("Submit Word")
+                    Text("Lookup Word")
+                }
+                Button(action: self.submitWordToDictionary) {
+                    Text("Add to Dictionary")
                 }
                 // Rack
                 // Board
@@ -26,6 +32,9 @@ struct DictionaryView: View {
     }
     
     func submitQueryWord() {
+        
+    }
+    func submitWordToDictionary() {
         
     }
 }
