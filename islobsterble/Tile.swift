@@ -15,9 +15,9 @@ struct Tile: View {
     let size: Int
     let face: Letter
     let position: Position
+    let allowDrag: Bool
     var onChanged: ((CGPoint, Letter, Position) -> Position)
     var onEnded: ((Letter, Position, Position) -> Void)
-    
     
     var body: some View {
         Text(self.face.letter == BLANK ? "" : String(self.face.letter))
@@ -32,7 +32,7 @@ struct Tile: View {
             .gesture(
                 DragGesture(coordinateSpace: .global)
                     .onChanged { gesture in
-                        self.dragAmount = gesture.translation
+                        self.dragAmount = self.allowDrag ? gesture.translation : .zero
                         self.dragState = self.onChanged(gesture.location, self.face, self.position)
                     }
                 .onEnded { gesture in

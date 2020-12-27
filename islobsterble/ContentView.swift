@@ -44,12 +44,18 @@ func initial_letters() -> [Letter] {
     rackLetters.append(Letter(letter: Character("C"), is_blank: false))
     rackLetters.append(Letter(letter: Character("D"), is_blank: false))
     rackLetters.append(Letter(letter: Character("E"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("F"), is_blank: false))
+    rackLetters.append(Letter(letter: Character("-"), is_blank: true))
     rackLetters.append(Letter(letter: Character("-"), is_blank: true))
     return rackLetters
 }
 
 enum FrontTaker {
+    /*
+     * States for tracking whether board tiles or rack tiles should appear at the front.
+     *
+     * This allows tiles dragged from the board to appear over all rack tiles
+     * and vice versa.
+     */
     case unknown
     case board
     case rack
@@ -60,30 +66,116 @@ struct PlaySpace: View {
     let width: Int
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
+    @State private var rackTilesOnBoardCount: Int = 0
     @State private var rackLetters: [Letter] = initial_letters()
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
+    
+    // Variables for the blank picker.
     @State private var showBlankPicker = false
     @State private var prevBlankRow: Int? = nil
     @State private var prevBlankColumn: Int? = nil
     
+    // Variables for the exchange picker.
+    @State private var showExchangePicker = false
+    @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
+    
+    // Environment variables.
     @EnvironmentObject var boardSlots: SlotGrid
     @EnvironmentObject var rackSlots: SlotRow
     
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 20) {
-                BoardBackground(boardSquares: setupBoardSquares())
-                RackBackground(rackSquares: setupRackSquares())
-            }
-            VStack(spacing: 20) {
-                BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingBlankPicker: self.showBlankPicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
-                RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingBlankPicker: self.showBlankPicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
-            }
-            BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
+        NavigationView {
+            VStack {
+                ZStack {
+                    VStack(spacing: 20) {
+                        BoardBackground(boardSquares: setupBoardSquares())
+                        RackBackground(rackSquares: setupRackSquares())
+                    }
+                    VStack(spacing: 20) {
+                        BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
+                        RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
+                    }
+                    BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
+                    ExchangePicker(isPresented: $showExchangePicker, rackLetters: self.rackLetters, chosen: $exchangeChosen, onSelectTile: self.chooseTileForExchange, onExchange: self.confirmExchange)
+                }
+                ActionPanel(
+                    rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
+                    showingPicker: self.showBlankPicker || self.showExchangePicker,
+                    onShuffle: self.shuffleTiles,
+                    onRecall: self.recallTiles,
+                    onPass: self.confirmPass,
+                    onPlay: self.confirmPlay,
+                    onExchange: self.selectExchange
+                )
+            }.navigationBarTitle("Game", displayMode: .inline)
         }
     }
+    func chooseTileForExchange(index: Int) {
+        self.exchangeChosen[index] = !self.exchangeChosen[index]
+    }
+    func confirmExchange() {
+        
+    }
+    func confirmPass() {
+        
+    }
+    func confirmPlay() {
+        
+    }
+    func selectExchange() {
+        self.recallTiles()
+        self.showExchangePicker = true
+    }
+    
+    func shuffleTiles() {
+        let order = UtilityFuncs.permutation(size: NUM_RACK_TILES)
+        var copy: [Letter] = []
+        for index in 0..<NUM_RACK_TILES {
+            copy.append(self.rackLetters[index])
+        }
+        for index in 0..<NUM_RACK_TILES {
+            self.rackLetters[index] = copy[order[index]]
+        }
+    }
+    
+    func recallTiles() {
+        var rackIndex = nextEmptyRackIndex(start: 0)
+        if rackIndex == nil {
+            self.rackTilesOnBoardCount = 0
+            return
+        }
+        for row in 0..<NUM_BOARD_ROWS {
+            for column in 0..<NUM_BOARD_COLUMNS {
+                if !locked[row][column] && self.boardLetters[row][column] != INVISIBLE_LETTER {
+                    var modifiedLetter = self.boardLetters[row][column]
+                    if modifiedLetter.is_blank {
+                        modifiedLetter = Letter(letter: BLANK, is_blank: true, value: modifiedLetter.value)
+                    }
+                    self.rackLetters[rackIndex!] = modifiedLetter
+                    self.boardLetters[row][column] = INVISIBLE_LETTER
+                    rackIndex = nextEmptyRackIndex(start: rackIndex!)
+                    if rackIndex == nil {
+                        self.rackTilesOnBoardCount = 0
+                        return
+                    }
+                }
+            }
+        }
+        self.rackTilesOnBoardCount = 0
+    }
+    private func nextEmptyRackIndex(start: Int) -> Int? {
+        var rackIndex = start
+        while rackIndex < NUM_RACK_TILES && self.rackLetters[rackIndex] != INVISIBLE_LETTER {
+            rackIndex += 1
+        }
+        if rackIndex >= NUM_RACK_TILES {
+            return nil
+        }
+        return rackIndex
+    }
+    
     
     func setBlank(choice: Character) {
         self.showBlankPicker = false
@@ -163,6 +255,7 @@ struct PlaySpace: View {
         }
         return self.rackLetters[index]
     }
+    
     func setDragIndex(index: Int, originalIndex: Int?, letter: Letter) {
         if originalIndex != nil && index == originalIndex! {
             self.rackShuffleState[index] = letter
@@ -226,6 +319,7 @@ struct PlaySpace: View {
                     self.prevBlankRow = endRow
                     self.prevBlankColumn = endColumn
                 }
+                self.rackTilesOnBoardCount += 1
             } else {
                 self.boardLetters[startPosition.boardRow!][startPosition.boardColumn!] = INVISIBLE_LETTER
             }
@@ -242,6 +336,7 @@ struct PlaySpace: View {
                     modifiedLetter = Letter(letter: BLANK, is_blank: true, value: letter.value)
                 }
                 self.rackLetters[endPosition.rackIndex!] = modifiedLetter
+                self.rackTilesOnBoardCount -= 1
             }
         } else {
             if startPosition.rackIndex != nil && self.rackShuffleState[startPosition.rackIndex!] != INVISIBLE_LETTER {
@@ -271,6 +366,7 @@ struct PlaySpace: View {
                     size: self.width / NUM_BOARD_COLUMNS,
                     face: boardLetters[row][column],
                     position: Position(boardRow: row, boardColumn: column, rackIndex: nil),
+                    allowDrag: true,
                     onChanged: self.tileMoved,
                     onEnded: self.tileDropped
                 ))
@@ -293,6 +389,7 @@ struct PlaySpace: View {
         }
         return boardSquares
     }
+    
     func getBoardColors() -> [[Color]] {
         var colors = Array(repeating: Array(repeating: Color.gray, count: 15), count: 15)
         colors[0][0] = Color.red
@@ -314,11 +411,13 @@ struct PlaySpace: View {
                     size: self.width / NUM_RACK_TILES,
                     face: self.rackLetters[index],
                     position: Position(boardRow: nil, boardColumn: nil, rackIndex: index),
+                    allowDrag: true,
                     onChanged: self.tileMoved,
                     onEnded: self.tileDropped))
         }
         return rackTiles
     }
+    
     private func setupShuffleState() -> [Tile] {
         var shuffleTiles: [Tile] = []
         for index in 0..<NUM_RACK_TILES {
@@ -326,6 +425,7 @@ struct PlaySpace: View {
                 size: self.width / NUM_RACK_TILES,
                 face: self.rackShuffleState[index],
                 position: Position(boardRow: nil, boardColumn: nil, rackIndex: index),
+                allowDrag: true,
                 onChanged: self.tileMoved,
                 onEnded: self.tileDropped))
         }
@@ -338,57 +438,5 @@ struct PlaySpace: View {
             rackSquares.append(RackSquare(size: self.width / NUM_RACK_TILES, color: Color.green, index: index))
         }
         return rackSquares
-    }
-    
-}
-
-
-
-
-class IntQueue {
-    // This implementation is not safe against exceeding
-    // the initially specified size.
-    let maxSize: Int
-    private var front: Int
-    private var back: Int
-    private var q: [Int?]
-    
-    init(maxSize: Int) {
-        self.maxSize = maxSize
-        self.q = [Int?](repeating: nil, count: maxSize)
-        self.front = 0
-        self.back = maxSize - 1
-    }
-    
-    func getSize() -> Int {
-        if back < front {
-            let diff = back + maxSize - front + 1
-            if diff == maxSize {
-                return self.q[front] == nil ? 0 : maxSize
-            }
-            return diff
-        }
-        let diff = back - front + 1
-        if diff == maxSize {
-            return self.q[front] == nil ? 0 : maxSize
-        }
-        return diff
-    }
-    func offer(_ val: Int) {
-        self.back += 1
-        if self.back >= maxSize {
-            self.back -= maxSize
-        }
-        assert(self.q[self.back] == nil, "The queue is too small!")
-        self.q[self.back] = val
-    }
-    func poll() -> Int? {
-        let val = self.q[self.front]
-        self.q[self.front] = nil
-        self.front += 1
-        if self.front >= maxSize {
-            self.front -= maxSize
-        }
-        return val
     }
 }

@@ -11,14 +11,14 @@ import SwiftUI
 struct BoardForeground: View {
     let tiles: [[Tile]]
     let locked: [[Bool]]
-    let showingBlankPicker: Bool
+    let showingPicker: Bool
     
     var body: some View {
         VStack(spacing: 0) {
             ForEach(0..<NUM_BOARD_ROWS) { row in
                 HStack(spacing: 0) {
                     ForEach(0..<NUM_BOARD_COLUMNS) { column in
-                        self.tiles[row][column].allowsHitTesting((!self.locked[row][column] && self.tiles[row][column].face != INVISIBLE_LETTER && !self.showingBlankPicker))
+                        self.tiles[row][column].allowsHitTesting((!self.locked[row][column] && self.tiles[row][column].face != INVISIBLE_LETTER && !self.showingPicker))
                     }
                 }
             }
