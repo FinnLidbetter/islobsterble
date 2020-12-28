@@ -12,23 +12,21 @@ struct DictionaryView: View {
     @State private var queryWord: String = ""
     
     var body: some View {
-        NavigationView() {
-            VStack {
-                TextField("", text: $queryWord)
-                    .background(
-                        Rectangle().fill(Color.white).border(Color.black, width: 2))
-                    .padding()
-                Button(action: self.submitQueryWord) {
-                    Text("Lookup Word")
-                }
-                Button(action: self.submitWordToDictionary) {
-                    Text("Add to Dictionary")
-                }
-                // Rack
-                // Board
+        VStack {
+            TextField("", text: $queryWord)
+                .background(
+                    Rectangle().fill(Color.white).border(Color.black, width: 2))
+                .padding()
+            Button(action: self.submitQueryWord) {
+                Text("Lookup Word")
             }
-            .navigationBarTitle("Dictionary", displayMode: .inline)
+            Button(action: self.submitWordToDictionary) {
+                Text("Add to Dictionary")
+            }
+            // Rack
+            // Board
         }
+        .navigationBarTitle("Dictionary", displayMode: .inline)
     }
     
     func submitQueryWord() {
