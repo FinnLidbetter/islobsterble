@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-
+let ROOT_URL = "http://localhost:5000/"
 
 struct ContentView: View {
     @EnvironmentObject var boardSlots: SlotGrid
@@ -16,9 +16,6 @@ struct ContentView: View {
     
     var body: some View {
         LoginView()
-//        VStack {
-//            PlaySpace(gameId: "1")
-//        }
     }
 }
 

@@ -45,7 +45,18 @@ struct GameManagementView: View {
         }
     }
     func fetchActiveGames() {
-        
+        guard let url = URL(string: ROOT_URL + "active-games") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    
+                }
+            }
+        }.resume()
     }
 }
 
