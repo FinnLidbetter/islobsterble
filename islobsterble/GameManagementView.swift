@@ -9,7 +9,9 @@
 import SwiftUI
 
 struct GameManagementView: View {
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @State private var activeGames: ActiveGames = ActiveGames(games: [])
+    @State private var loggedIn = true
     
     var body: some View {
         VStack {
@@ -29,6 +31,8 @@ struct GameManagementView: View {
                 NavigationLink(destination: NewGameView()) {
                     // Image("NewGameIcon").renderingMode(.original)
                     Text("New Game")
+                }.onChange(of: loggedIn) { newValue in
+                    self.presentationMode.wrappedValue.dismiss()
                 }
             }
             Text("Active Games")
@@ -38,11 +42,16 @@ struct GameManagementView: View {
                 }
             }
             Text("Completed Games")
+            
         }
         .navigationBarTitle("Menu", displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: btnBack)
         .onAppear {
+            self.loggedIn = true
             self.fetchActiveGames()
         }
+        
     }
     func fetchActiveGames() {
         guard let url = URL(string: ROOT_URL + "api/active-games") else {
@@ -61,6 +70,50 @@ struct GameManagementView: View {
                 }
             }
         }.resume()
+    }
+    
+    var btnBack : some View { Button(action: {
+            self.logout()
+            //self.presentationMode.wrappedValue.dismiss()
+        }) {
+            HStack {
+            Image("back_arrow")
+                .aspectRatio(contentMode: .fit)
+                Text("Logout")
+            }
+        }
+    }
+    private func logout() {
+        guard let url = URL(string: ROOT_URL + "auth/logout") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    self.loggedIn = false
+                } else {
+                    print(response)
+                }
+            } else {
+                print(error!)
+            }
+        }.resume()
+    }
+}
+
+
+
+
+extension UINavigationController: UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return viewControllers.count > 1
     }
 }
 
