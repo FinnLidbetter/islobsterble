@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct GameManagementView: View {
-    @State private var activeGames: [GameInfo] = [GameInfo(gameId: "1", scores: ["Player 1": 10, "Player 2": 7], whoseTurn: "Player 2")]
+    @State private var activeGames: ActiveGames = ActiveGames(games: [])
     
     var body: some View {
         VStack {
@@ -32,9 +32,9 @@ struct GameManagementView: View {
                 }
             }
             Text("Active Games")
-            ForEach(0..<activeGames.count) { index in
-                NavigationLink(destination: PlaySpace(gameId: self.activeGames[index].gameId)) {
-                    Text(self.activeGames[index].display())
+            ForEach(0..<activeGames.games.count, id: \.self) { index in
+                NavigationLink(destination: PlaySpace(gameId: String(self.activeGames.games[index].id))) {
+                    Text(self.activeGames.games[index].display())
                 }
             }
             Text("Completed Games")
@@ -45,32 +45,48 @@ struct GameManagementView: View {
         }
     }
     func fetchActiveGames() {
-        guard let url = URL(string: ROOT_URL + "active-games") else {
+        guard let url = URL(string: ROOT_URL + "api/active-games") else {
             print("Invalid URL")
             return
         }
         let request = URLRequest(url: url)
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let response = response as? HTTPURLResponse {
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .secondsSince1970
+                    if let decodedGames = try? decoder.decode(ActiveGames.self, from: data) {
+                        self.activeGames = decodedGames
+                    }
                 }
             }
         }.resume()
     }
 }
 
-struct GameInfo {
-    let gameId: String
-    let scores: [String: Int]
-    let whoseTurn: String
+struct ActiveGames: Codable {
+    let games: [GameInfo]
+}
+
+struct GameInfo: Codable {
+    let id: Int
+    let game_players: [GamePlayer]
+    let whose_turn_name: String
+    let started: Date
     
     func display() -> String {
         var displayEntries: [String] = []
-        for (player, score) in self.scores {
-            displayEntries.append("\(player): \(score)")
+        for gamePlayer in self.game_players {
+            displayEntries.append("\(gamePlayer.player.display_name): \(gamePlayer.score)")
         }
-        displayEntries.append("\(self.whoseTurn) to play")
+        displayEntries.append("\(self.whose_turn_name) to play")
         return displayEntries.joined(separator: "\n")
     }
+}
+struct GamePlayer: Codable {
+    let score: Int
+    let player: Player
+}
+struct Player: Codable {
+    let display_name: String
 }

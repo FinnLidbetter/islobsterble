@@ -17,21 +17,6 @@ let NUM_RACK_TILES = 7
 let NUM_BOARD_ROWS = 15
 let NUM_BOARD_COLUMNS = 15
 
-func initialLetters() -> [Letter] {
-    var rackLetters: [Letter] = []
-    rackLetters.append(Letter(letter: Character("A"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("B"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("C"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("D"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("E"), is_blank: false))
-    rackLetters.append(Letter(letter: Character("-"), is_blank: true))
-    rackLetters.append(Letter(letter: Character("-"), is_blank: true))
-    return rackLetters
-}
-func initialScores() -> [String: Int] {
-    return ["Player 1": 100, "Player 2": 101]
-}
-
 enum FrontTaker {
     /*
      * States for tracking whether board tiles or rack tiles should appear at the front.
@@ -47,11 +32,11 @@ enum FrontTaker {
 struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
-    @State private var scores: [String: Int] = initialScores()
+    @State private var scores = [String: Int]()
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var rackTilesOnBoardCount: Int = 0
-    @State private var rackLetters: [Letter] = initialLetters()
+    @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     
@@ -63,6 +48,9 @@ struct PlaySpace: View {
     // Variables for the exchange picker.
     @State private var showExchangePicker = false
     @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
+    
+    // For debugging.
+    @State private var message = ""
     
     // Environment variables.
     @EnvironmentObject var boardSlots: SlotGrid
@@ -93,26 +81,99 @@ struct PlaySpace: View {
                 onPlay: self.confirmPlay,
                 onExchange: self.selectExchange
             )
-        }.navigationBarTitle("Game", displayMode: .inline)
+            Text(self.message)
+        }
+        .navigationBarTitle("Game", displayMode: .inline)
+        .onAppear() {
+            self.getGameState()
+        }
     }
-    func chooseTileForExchange(index: Int) {
+    
+    private func chooseTileForExchange(index: Int) {
         self.exchangeChosen[index] = !self.exchangeChosen[index]
     }
-    func confirmExchange() {
-        
+    
+    private func confirmExchange() {
+        var playedTiles = [TurnPlayedTileSerializer]()
+        for rackIndex in 0..<NUM_RACK_TILES {
+            if self.exchangeChosen[rackIndex] {
+                let currLetter = self.rackLetters[rackIndex]
+                playedTiles.append(
+                    TurnPlayedTileSerializer(
+                        letter: currLetter.is_blank ? nil : String(currLetter.letter),
+                        is_blank: currLetter.is_blank,
+                        value: currLetter.value ?? 0,
+                        row: nil,
+                        column: nil,
+                        is_exchange: true
+                    )
+                )
+            }
+        }
+        let turn = TurnSerializer(played_tiles: playedTiles)
+        self.showExchangePicker = false
+        self.submitTurn(turn: turn)
     }
-    func confirmPass() {
-        
+    
+    private func confirmPass() {
+        let playedTiles = [TurnPlayedTileSerializer]()
+        let turn = TurnSerializer(played_tiles: playedTiles)
+        self.submitTurn(turn: turn)
     }
-    func confirmPlay() {
-        
+    
+    private func confirmPlay() {
+        var playedTiles = [TurnPlayedTileSerializer]()
+        for row in 0..<NUM_BOARD_ROWS {
+            for column in 0..<NUM_BOARD_COLUMNS {
+                if !self.locked[row][column] && self.boardLetters[row][column] != INVISIBLE_LETTER {
+                    let currLetter = self.boardLetters[row][column]
+                    playedTiles.append(
+                        TurnPlayedTileSerializer(
+                            letter: String(currLetter.letter),
+                            is_blank: currLetter.is_blank,
+                            value: currLetter.value ?? 0,
+                            row: row,
+                            column: column,
+                            is_exchange: false))
+                }
+            }
+        }
+        let turn = TurnSerializer(played_tiles: playedTiles)
+        self.submitTurn(turn: turn)
     }
-    func selectExchange() {
+    
+    private func submitTurn(turn: TurnSerializer) {
+        guard let encodedTurnData = try? JSONEncoder().encode(turn) else {
+            print("Failed to encode turn data")
+            return
+        }
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)/play") else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = encodedTurnData
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    print("Success")
+                }
+                self.message = String(decoding: data, as: UTF8.self)
+            } else {
+                self.message = String(decoding: data!, as: UTF8.self)
+            }
+            self.getGameState()
+        }.resume()
+    }
+    
+    private func selectExchange() {
         self.recallTiles()
         self.showExchangePicker = true
     }
     
-    func shuffleTiles() {
+    private func shuffleTiles() {
         let order = UtilityFuncs.permutation(size: NUM_RACK_TILES)
         var copy: [Letter] = []
         for index in 0..<NUM_RACK_TILES {
@@ -123,7 +184,7 @@ struct PlaySpace: View {
         }
     }
     
-    func recallTiles() {
+    private func recallTiles() {
         var rackIndex = nextEmptyRackIndex(start: 0)
         if rackIndex == nil {
             self.rackTilesOnBoardCount = 0
@@ -160,7 +221,7 @@ struct PlaySpace: View {
     }
     
     
-    func setBlank(choice: Character) {
+    private func setBlank(choice: Character) {
         self.showBlankPicker = false
         let prevLetter = self.boardLetters[prevBlankRow!][prevBlankColumn!]
         assert(prevLetter.is_blank)
@@ -170,7 +231,7 @@ struct PlaySpace: View {
         self.prevBlankColumn = nil
     }
     
-    func nearestRackEmpty(newIndex: Int, originalIndex: Int?) -> Int {
+    private func nearestRackEmpty(newIndex: Int, originalIndex: Int?) -> Int {
         for delta in 0..<NUM_RACK_TILES {
             if newIndex + delta < NUM_RACK_TILES {
                 if newIndex + delta == originalIndex {
@@ -198,7 +259,7 @@ struct PlaySpace: View {
         return -1
     }
     
-    func nearestBoardEmpty(targetRow: Int, targetColumn: Int) -> (Int, Int) {
+    private func nearestBoardEmpty(targetRow: Int, targetColumn: Int) -> (Int, Int) {
         var vis = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
         let rowQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
         let columnQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
@@ -422,4 +483,108 @@ struct PlaySpace: View {
         }
         return rackSquares
     }
+    
+    private func getGameState() {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    if let gameState = try? JSONDecoder().decode(GameSerializer.self, from: data) {
+                        self.clearBoard()
+                        for playedTileIndex in 0..<gameState.board_state.count {
+                            let playedTile = gameState.board_state[playedTileIndex]
+                            self.boardLetters[playedTile.row][playedTile.column] = Letter(letter: Character(playedTile.tile.letter!), is_blank: playedTile.tile.is_blank, value: playedTile.tile.value)
+                            self.locked[playedTile.row][playedTile.column] = true
+                        }
+                        self.clearRack()
+                        var rackIndex = 0
+                        for tileCountIndex in 0..<gameState.rack.count {
+                            let tileCount = gameState.rack[tileCountIndex]
+                            let tile = tileCount.tile
+                            for _ in 0..<tileCount.count {
+                                self.rackLetters[rackIndex] = Letter(letter: tile.is_blank ? BLANK : Character(tile.letter!), is_blank: tile.is_blank, value: tile.value)
+                                rackIndex += 1
+                            }
+                        }
+                        self.scores = [String: Int]()
+                        for gamePlayerIndex in 0..<gameState.game_players.count {
+                            let name = gameState.game_players[gamePlayerIndex].player.display_name
+                            let score = gameState.game_players[gamePlayerIndex].score
+                            self.scores[name] = score
+                        }
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func clearBoard() {
+        for row in 0..<NUM_BOARD_ROWS {
+            for column in 0..<NUM_BOARD_COLUMNS {
+                self.boardLetters[row][column] = INVISIBLE_LETTER
+                self.locked[row][column] = false
+            }
+        }
+    }
+    
+    private func clearRack() {
+        for rackIndex in 0..<NUM_RACK_TILES {
+            self.rackLetters[rackIndex] = INVISIBLE_LETTER
+        }
+    }
+}
+
+struct TurnSerializer: Codable {
+    let played_tiles: [TurnPlayedTileSerializer]
+}
+struct TurnPlayedTileSerializer: Codable {
+    let letter: String?
+    let is_blank: Bool
+    let value: Int
+    let row: Int?
+    let column: Int?
+    let is_exchange: Bool
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(letter, forKey: .letter)
+        try container.encode(is_blank, forKey: .is_blank)
+        try container.encode(value, forKey: .value)
+        try container.encode(row, forKey: .row)
+        try container.encode(column, forKey: .column)
+        try container.encode(is_exchange, forKey: .is_exchange)
+    }
+}
+
+struct GameSerializer: Codable {
+    let board_state: [PlayedTileSerializer]
+    let game_players: [GamePlayerSerializer]
+    let whose_turn_name: String
+    let num_tiles_remaining: Int
+    let rack: [TileCountSerializer]
+}
+struct PlayedTileSerializer: Codable {
+    let tile: TileSerializer
+    let row: Int
+    let column: Int
+}
+struct TileSerializer: Codable {
+    let letter: String?
+    let is_blank: Bool
+    let value: Int
+}
+struct TileCountSerializer: Codable {
+    let tile: TileSerializer
+    let count: Int
+}
+struct GamePlayerSerializer: Codable {
+    let score: Int
+    let player: PlayerSerializer
+}
+struct PlayerSerializer: Codable {
+    let display_name: String
 }
