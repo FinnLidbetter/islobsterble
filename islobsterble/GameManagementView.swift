@@ -11,7 +11,6 @@ import SwiftUI
 struct GameManagementView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @State private var activeGames: ActiveGames = ActiveGames(games: [])
-    @State private var loggedIn = true
     
     var body: some View {
         VStack {
@@ -31,8 +30,6 @@ struct GameManagementView: View {
                 NavigationLink(destination: NewGameView()) {
                     // Image("NewGameIcon").renderingMode(.original)
                     Text("New Game")
-                }.onChange(of: loggedIn) { newValue in
-                    self.presentationMode.wrappedValue.dismiss()
                 }
             }
             Text("Active Games")
@@ -42,19 +39,17 @@ struct GameManagementView: View {
                 }
             }
             Text("Completed Games")
-            
         }
         .navigationBarTitle("Menu", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading: btnBack)
+        .navigationBarItems(leading: logoutButton)
         .onAppear {
-            self.loggedIn = true
             self.fetchActiveGames()
         }
-        
     }
+    
     func fetchActiveGames() {
-        guard let url = URL(string: ROOT_URL + "api/active-games") else {
+        guard let url = URL(string: ROOT_URL + "api/games") else {
             print("Invalid URL")
             return
         }
@@ -72,13 +67,10 @@ struct GameManagementView: View {
         }.resume()
     }
     
-    var btnBack : some View { Button(action: {
-            self.logout()
-            //self.presentationMode.wrappedValue.dismiss()
-        }) {
+    var logoutButton: some View {
+        Button(action: { self.logout() }) {
             HStack {
-            Image("back_arrow")
-                .aspectRatio(contentMode: .fit)
+                Image("back_arrow").aspectRatio(contentMode: .fit)
                 Text("Logout")
             }
         }
@@ -92,7 +84,9 @@ struct GameManagementView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    self.loggedIn = false
+                    DispatchQueue.main.async {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }
                 } else {
                     print(response)
                 }
@@ -102,9 +96,6 @@ struct GameManagementView: View {
         }.resume()
     }
 }
-
-
-
 
 extension UINavigationController: UIGestureRecognizerDelegate {
     override open func viewDidLoad() {
@@ -126,6 +117,7 @@ struct GameInfo: Codable {
     let game_players: [GamePlayer]
     let whose_turn_name: String
     let started: Date
+    let completed: Date
     
     func display() -> String {
         var displayEntries: [String] = []

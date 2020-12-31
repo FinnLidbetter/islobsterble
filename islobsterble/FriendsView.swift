@@ -11,6 +11,7 @@ import SwiftUI
 struct FriendsView: View {
     @State private var myFriendKey = ""
     @State private var friends: [String] = []
+    @State private var message = ""
     
     var body: some View {
         List {
@@ -19,7 +20,7 @@ struct FriendsView: View {
             }
             Section(header: Text("Friends")) {
                 List {
-                    ForEach(0..<friends.count) { index in
+                    ForEach(0..<friends.count, id: \.self) { index in
                         Text("\(self.friends[index])")
                     }
                 }
@@ -38,8 +39,39 @@ struct FriendsView: View {
         }
     }
     func fetchData() {
-        self.myFriendKey = ""
-        self.friends = []
+        guard let url = URL(string: ROOT_URL + "api/friends") else {
+            print("Invalid URL")
+            return
+        }
+        let request = URLRequest(url: url)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    if let decodedData = try? JSONDecoder().decode(FriendsDataSerializer.self, from: data) {
+                        self.myFriendKey = decodedData.friend_key
+                        self.friends = []
+                        for friendIndex in 0..<decodedData.friends.count {
+                            self.friends.append(decodedData.friends[friendIndex].display_name)
+                        }
+                    } else {
+                        print("Error decoding data")
+                        return
+                    }
+                } else {
+                    self.message = String(decoding: data, as: UTF8.self)
+                }
+            } else {
+                self.message = "Could not connect to the server."
+            }
+        }.resume()
     }
-    
+}
+
+struct FriendsDataSerializer: Codable {
+    let friend_key: String
+    let friends: [FriendSerializer]
+}
+struct FriendSerializer: Codable {
+    let display_name: String
+    let player_id: Int
 }

@@ -61,7 +61,7 @@ struct RegistrationView: View {
                 self.message = String(decoding: data, as: UTF8.self)
             } else {
                 self.success = false
-                self.message = "Unknown error"
+                self.message = "Could not connect to the server."
             }
         }.resume()
     }

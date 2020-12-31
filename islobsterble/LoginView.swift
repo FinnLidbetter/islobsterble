@@ -12,8 +12,7 @@ struct LoginView: View {
     @State private var username: String = ""
     @State private var password: String = ""
     @State private var loggedIn = false
-    @State private var logoutFailed = false
-    @State private var loginFailed = false
+    @State private var failureMessage = ""
     
     
     var body: some View {
@@ -29,18 +28,13 @@ struct LoginView: View {
                 TextField("Username", text: $username)
                 Text("Password")
                 SecureField("Password", text: $password)
-                HStack {
-                    Button(action: self.logout) {
-                        Text("Logout")
-                    }.disabled(!self.loggedIn)
-                    Button(action: self.login) {
-                        Text("Login")
-                    }.disabled(self.loggedIn)
+                NavigationLink(destination: GameManagementView(), isActive: $loggedIn) {
+                    EmptyView()
                 }
-                NavigationLink(destination: GameManagementView()) {
-                    Text("Enter!")
-                }.disabled(!self.loggedIn)
-                Text(self.loginFailed ? "Failed to login" : (self.logoutFailed ? "Failed to logout" : ""))
+                Button(action: { self.login() }) {
+                   Text("Login")
+                }
+                Text(self.failureMessage)
             }.navigationBarTitle("Login", displayMode: .inline)
         }
     }
@@ -60,41 +54,15 @@ struct LoginView: View {
         request.httpMethod = "POST"
         request.httpBody = encodedLoginData
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let response = response as? HTTPURLResponse {
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     self.loggedIn = true
-                    self.loginFailed = false
-                    self.logoutFailed = false
+                    self.failureMessage = ""
                 } else {
-                    self.loginFailed = true
-                    self.logoutFailed = false
+                    self.failureMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.loginFailed = true
-                self.logoutFailed = false
-            }
-        }.resume()
-    }
-    
-    func logout() {
-        guard let url = URL(string: ROOT_URL + "auth/logout") else {
-            print("Invalid URL")
-            return
-        }
-        let request = URLRequest(url: url)
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
-                    self.loggedIn = false
-                    self.logoutFailed = false
-                    self.loginFailed = false
-                } else {
-                    self.logoutFailed = true
-                    self.loginFailed = false
-                }
-            } else {
-                self.logoutFailed = true
-                self.loginFailed = false
+                self.failureMessage = "Could not connect to the server."
             }
         }.resume()
     }
