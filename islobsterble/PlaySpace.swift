@@ -32,7 +32,7 @@ enum FrontTaker {
 struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
-    @State private var scores = [String: Int]()
+    @State private var scores = ["": 0, " ": 0]
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
     @State private var rackTilesOnBoardCount: Int = 0

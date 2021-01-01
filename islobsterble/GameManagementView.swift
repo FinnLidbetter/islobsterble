@@ -117,7 +117,7 @@ struct GameInfo: Codable {
     let game_players: [GamePlayer]
     let whose_turn_name: String
     let started: Date
-    let completed: Date
+    let completed: Date?
     
     func display() -> String {
         var displayEntries: [String] = []
