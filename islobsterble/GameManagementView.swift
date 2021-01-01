@@ -10,7 +10,8 @@ import SwiftUI
 
 struct GameManagementView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @State private var activeGames: ActiveGames = ActiveGames(games: [])
+    @State private var activeGames = [GameInfo]()
+    @State private var completedGames = [GameInfo]()
     
     var body: some View {
         VStack {
@@ -25,7 +26,7 @@ struct GameManagementView: View {
                 }
                 NavigationLink(destination: FriendsView()) {
                     // Image("ContactsIcon").renderingMode(.original)
-                    Text("Contacts")
+                    Text("Friends")
                 }
                 NavigationLink(destination: NewGameView()) {
                     // Image("NewGameIcon").renderingMode(.original)
@@ -33,12 +34,17 @@ struct GameManagementView: View {
                 }
             }
             Text("Active Games")
-            ForEach(0..<activeGames.games.count, id: \.self) { index in
-                NavigationLink(destination: PlaySpace(gameId: String(self.activeGames.games[index].id))) {
-                    Text(self.activeGames.games[index].display())
+            ForEach(0..<activeGames.count, id: \.self) { index in
+                NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id))) {
+                    Text(self.activeGames[index].display())
                 }
             }
             Text("Completed Games")
+            ForEach(0..<completedGames.count, id: \.self) { index in
+                NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id))) {
+                    Text(self.completedGames[index].display())
+                }
+            }
         }
         .navigationBarTitle("Menu", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
@@ -59,8 +65,16 @@ struct GameManagementView: View {
                 if response.statusCode == 200 {
                     let decoder = JSONDecoder()
                     decoder.dateDecodingStrategy = .secondsSince1970
-                    if let decodedGames = try? decoder.decode(ActiveGames.self, from: data) {
-                        self.activeGames = decodedGames
+                    if let decodedGames = try? decoder.decode(Games.self, from: data) {
+                        self.activeGames = []
+                        self.completedGames = []
+                        for game in decodedGames.games {
+                            if game.completed == nil {
+                                self.activeGames.append(game)
+                            } else {
+                                self.completedGames.append(game)
+                            }
+                        }
                     }
                 }
             }
@@ -108,7 +122,7 @@ extension UINavigationController: UIGestureRecognizerDelegate {
     }
 }
 
-struct ActiveGames: Codable {
+struct Games: Codable {
     let games: [GameInfo]
 }
 
@@ -121,10 +135,27 @@ struct GameInfo: Codable {
     
     func display() -> String {
         var displayEntries: [String] = []
+        var bestPlayer = ""
+        var bestScore = -1
+        var tie = false
         for gamePlayer in self.game_players {
             displayEntries.append("\(gamePlayer.player.display_name): \(gamePlayer.score)")
+            if gamePlayer.score > bestScore {
+                bestScore = gamePlayer.score
+                bestPlayer = gamePlayer.player.display_name
+                tie = false
+            } else if gamePlayer.score == bestScore {
+                tie = true
+            }
         }
-        displayEntries.append("\(self.whose_turn_name) to play")
+        if completed == nil {
+            displayEntries.append("\(self.whose_turn_name) to play")
+        } else {
+            if tie {
+                displayEntries.append("It was a draw!")
+            }
+            displayEntries.append("\(bestPlayer) won!")
+        }
         return displayEntries.joined(separator: "\n")
     }
 }
