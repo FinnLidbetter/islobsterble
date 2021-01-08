@@ -19,12 +19,12 @@ struct ContentView: View {
     }
 }
 
-var previewBoardSlots = SlotGrid(num_rows: NUM_BOARD_ROWS, num_columns: NUM_BOARD_COLUMNS)
-var previewRackSlots = SlotRow(num_slots: NUM_RACK_TILES)
+var previewBoardSlots = SlotGrid(num_rows: 15, num_columns: 15)
+var previewRackSlots = SlotRow(num_slots: 7)
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView().environmentObject(previewBoardSlots).environmentObject(previewRackSlots)
-    }
-}
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ContentView().environmentObject(previewBoardSlots).environmentObject(previewRackSlots)
+//    }
+//}
 

@@ -19,10 +19,8 @@ struct FriendsView: View {
                 Text("\(self.myFriendKey)")
             }
             Section(header: Text("Friends")) {
-                List {
-                    ForEach(0..<friends.count, id: \.self) { index in
-                        Text("\(self.friends[index])")
-                    }
+                ForEach(0..<self.friends.count, id: \.self) { index in
+                    Text("\(self.friends[index])")
                 }
             }
         }

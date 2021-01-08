@@ -14,8 +14,8 @@ let BLANK = Character("-")
 let INVISIBLE = Character(" ")
 let INVISIBLE_LETTER = Letter(letter: INVISIBLE, is_blank: false)
 let NUM_RACK_TILES = 7
-let NUM_BOARD_ROWS = 15
-let NUM_BOARD_COLUMNS = 15
+let DEFAULT_ROWS = 15
+let DEFAULT_COLUMNS = 15
 
 enum FrontTaker {
     /*
@@ -32,12 +32,19 @@ enum FrontTaker {
 struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
-    @State private var scores = ["": 0, " ": 0]
-    @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
-    @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
+    
+    @State private var numBoardRows = 15
+    @State private var numBoardColumns = 15
+    @State private var scores = ["Player 1": 0, "Player 2": 0]
+    @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
+    @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
+    @State private var letterMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
+    @State private var wordMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
+    
     @State private var rackTilesOnBoardCount: Int = 0
     @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
+    
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     
     // Variables for the blank picker.
@@ -123,8 +130,8 @@ struct PlaySpace: View {
     
     private func confirmPlay() {
         var playedTiles = [TurnPlayedTileSerializer]()
-        for row in 0..<NUM_BOARD_ROWS {
-            for column in 0..<NUM_BOARD_COLUMNS {
+        for row in 0..<self.numBoardRows {
+            for column in 0..<self.numBoardColumns {
                 if !self.locked[row][column] && self.boardLetters[row][column] != INVISIBLE_LETTER {
                     let currLetter = self.boardLetters[row][column]
                     playedTiles.append(
@@ -190,8 +197,8 @@ struct PlaySpace: View {
             self.rackTilesOnBoardCount = 0
             return
         }
-        for row in 0..<NUM_BOARD_ROWS {
-            for column in 0..<NUM_BOARD_COLUMNS {
+        for row in 0..<self.numBoardRows {
+            for column in 0..<self.numBoardColumns {
                 if !locked[row][column] && self.boardLetters[row][column] != INVISIBLE_LETTER {
                     var modifiedLetter = self.boardLetters[row][column]
                     if modifiedLetter.is_blank {
@@ -260,9 +267,9 @@ struct PlaySpace: View {
     }
     
     private func nearestBoardEmpty(targetRow: Int, targetColumn: Int) -> (Int, Int) {
-        var vis = [[Bool]](repeating: [Bool](repeating: false, count: NUM_BOARD_COLUMNS), count: NUM_BOARD_ROWS)
-        let rowQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
-        let columnQueue = IntQueue(maxSize: NUM_BOARD_ROWS * NUM_BOARD_COLUMNS)
+        var vis = [[Bool]](repeating: [Bool](repeating: false, count: self.numBoardColumns), count: self.numBoardRows)
+        let rowQueue = IntQueue(maxSize: self.numBoardRows * self.numBoardColumns)
+        let columnQueue = IntQueue(maxSize: self.numBoardRows * self.numBoardColumns)
         
         rowQueue.offer(targetRow)
         columnQueue.offer(targetColumn)
@@ -279,7 +286,7 @@ struct PlaySpace: View {
             for index in 0..<4 {
                 let nextRow = currRow + dr[index]
                 let nextColumn = currColumn + dc[index]
-                if nextRow < 0 || nextRow >= NUM_BOARD_ROWS || nextColumn < 0 || nextColumn >= NUM_BOARD_COLUMNS {
+                if nextRow < 0 || nextRow >= self.numBoardRows || nextColumn < 0 || nextColumn >= self.numBoardColumns {
                     continue
                 }
                 if !vis[nextRow][nextColumn] {
@@ -340,8 +347,8 @@ struct PlaySpace: View {
                 return Position(boardRow: nil, boardColumn: nil, rackIndex: rackIndex)
             }
         }
-        for row in 0..<NUM_BOARD_ROWS {
-            for column in 0..<NUM_BOARD_COLUMNS {
+        for row in 0..<self.numBoardRows {
+            for column in 0..<self.numBoardColumns {
                 if boardSlots.grid[row][column].contains(location) {
                     return Position(boardRow: row, boardColumn: column, rackIndex: nil)
                 }
@@ -403,11 +410,11 @@ struct PlaySpace: View {
     
     private func setupBoardTiles() -> [[Tile]] {
         var boardTiles: [[Tile]] = []
-        for row in 0..<NUM_BOARD_ROWS {
+        for row in 0..<self.numBoardRows {
             var boardRow: [Tile] = []
-            for column in 0..<NUM_BOARD_COLUMNS {
+            for column in 0..<self.numBoardColumns {
                 boardRow.append(Tile(
-                    size: self.width / NUM_BOARD_COLUMNS,
+                    size: self.width / self.numBoardColumns,
                     face: boardLetters[row][column],
                     position: Position(boardRow: row, boardColumn: column, rackIndex: nil),
                     allowDrag: true,
@@ -421,13 +428,12 @@ struct PlaySpace: View {
     }
     
     private func setupBoardSquares() -> [[BoardSquare]] {
-        let colors = getBoardColors()
         var boardSquares: [[BoardSquare]] = []
-        let size = self.width / NUM_BOARD_COLUMNS
-        for row in 0..<NUM_BOARD_ROWS {
+        let size = self.width / self.numBoardColumns
+        for row in 0..<self.numBoardRows {
             var boardSquareRow: [BoardSquare] = []
-            for column in 0..<NUM_BOARD_COLUMNS {
-                boardSquareRow.append(BoardSquare(size: size, color: colors[row][column], row: row, column: column))
+            for column in 0..<self.numBoardColumns {
+                boardSquareRow.append(BoardSquare(size: size, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
             }
             boardSquares.append(boardSquareRow)
         }
@@ -494,7 +500,11 @@ struct PlaySpace: View {
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     if let gameState = try? JSONDecoder().decode(GameSerializer.self, from: data) {
-                        self.clearBoard()
+                        self.clearBoard(rows: gameState.board_layout.rows, columns: gameState.board_layout.columns)
+                        for modifier in gameState.board_layout.modifiers {
+                            self.wordMultipliers[modifier.row][modifier.column] = modifier.modifier.word_multiplier
+                            self.letterMultipliers[modifier.row][modifier.column] = modifier.modifier.letter_multiplier
+                        }
                         for playedTileIndex in 0..<gameState.board_state.count {
                             let playedTile = gameState.board_state[playedTileIndex]
                             self.boardLetters[playedTile.row][playedTile.column] = Letter(letter: Character(playedTile.tile.letter!), is_blank: playedTile.tile.is_blank, value: playedTile.tile.value)
@@ -522,13 +532,11 @@ struct PlaySpace: View {
         }.resume()
     }
     
-    private func clearBoard() {
-        for row in 0..<NUM_BOARD_ROWS {
-            for column in 0..<NUM_BOARD_COLUMNS {
-                self.boardLetters[row][column] = INVISIBLE_LETTER
-                self.locked[row][column] = false
-            }
-        }
+    private func clearBoard(rows: Int, columns: Int) {
+        self.boardLetters = Array(repeating: Array(repeating: INVISIBLE_LETTER, count: columns), count: rows)
+        self.locked = Array(repeating: Array(repeating: false, count: columns), count: rows)
+        self.wordMultipliers = Array(repeating: Array(repeating: 1, count: columns), count: rows)
+        self.letterMultipliers = Array(repeating: Array(repeating: 1, count: columns), count: rows)
     }
     
     private func clearRack() {
@@ -563,6 +571,7 @@ struct TurnPlayedTileSerializer: Codable {
 struct GameSerializer: Codable {
     let board_state: [PlayedTileSerializer]
     let game_players: [GamePlayerSerializer]
+    let board_layout: BoardLayoutSerializer
     let whose_turn_name: String
     let num_tiles_remaining: Int
     let rack: [TileCountSerializer]
@@ -587,4 +596,19 @@ struct GamePlayerSerializer: Codable {
 }
 struct PlayerSerializer: Codable {
     let display_name: String
+    let id: Int
+}
+struct BoardLayoutSerializer: Codable {
+    let rows: Int
+    let columns: Int
+    let modifiers: [PositionedModifierSerializer]
+}
+struct PositionedModifierSerializer: Codable {
+    let row: Int
+    let column: Int
+    let modifier: ModifierSerializer
+}
+struct ModifierSerializer: Codable {
+    let word_multiplier: Int
+    let letter_multiplier: Int
 }

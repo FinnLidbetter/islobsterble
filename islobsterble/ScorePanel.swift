@@ -25,8 +25,8 @@ struct ScorePanel: View {
     
     var body: some View {
         HStack {
-            Text("\(self.names[0]): \(self.values[0])")
-            ForEach(1..<names.count) { index in
+            Text(self.names.count > 0 ? "\(self.names[0]): \(self.values[0])" : "")
+            ForEach(1..<self.names.count, id: \.self) { index in
                 Spacer()
                 Text("\(self.names[index]): \(self.values[index])")
             }
