@@ -1,6 +1,7 @@
 //
 //  ExchangePicker.swift
 //  islobsterble
+//  View for choosing which letters to exchange.
 //
 //  Created by Finn Lidbetter on 2020-12-26.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

@@ -1,6 +1,7 @@
 //
 //  SettingsView.swift
 //  islobsterble
+//  View for changing player settings.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.
@@ -8,7 +9,7 @@
 
 import SwiftUI
 
-let FRIEND_KEY_LENGTH = 15
+let FRIEND_KEY_LENGTH = 8
 let DEFAULT_DICTIONARY_NAME = "SOWPODS (International)"
 let DEFAULT_DICTIONARY_ID = 2
 

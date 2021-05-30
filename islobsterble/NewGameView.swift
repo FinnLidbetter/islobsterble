@@ -1,6 +1,7 @@
 //
 //  NewGameView.swift
 //  islobsterble
+//  View for starting a new game.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

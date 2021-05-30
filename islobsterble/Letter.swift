@@ -1,6 +1,7 @@
 //
 //  TileObjects.swift
 //  islobsterble
+//  Struct for storing the contents of a tile.
 //
 //  Created by Finn Lidbetter on 2020-12-25.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

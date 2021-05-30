@@ -1,6 +1,7 @@
 //
 //  AddFriendView.swift
 //  islobsterble
+//  View for adding a new friend.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

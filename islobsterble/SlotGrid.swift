@@ -1,6 +1,7 @@
 //
 //  SlotGrid.swift
 //  islobsterble
+//  Object for tracking the locations of the board squares.
 //
 //  Created by Finn Lidbetter on 2020-12-25.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

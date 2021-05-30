@@ -1,6 +1,7 @@
 //
 //  PlaySpace.swift
 //  islobsterble
+//  View for a game board and tile rack and their interactions.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.
@@ -80,6 +81,7 @@ struct PlaySpace: View {
                 ExchangePicker(isPresented: $showExchangePicker, rackLetters: self.rackLetters, chosen: $exchangeChosen, onSelectTile: self.chooseTileForExchange, onExchange: self.confirmExchange)
             }
             ActionPanel(
+                gameId: self.gameId,
                 rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
                 showingPicker: self.showBlankPicker || self.showExchangePicker,
                 onShuffle: self.shuffleTiles,
@@ -154,7 +156,7 @@ struct PlaySpace: View {
             print("Failed to encode turn data")
             return
         }
-        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)/play") else {
+        guard let url = URL(string: ROOT_URL + "/game/\(self.gameId)") else {
             print("Invalid URL")
             return
         }

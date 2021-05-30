@@ -1,6 +1,7 @@
 //
 //  ActionPanel.swift
 //  islobsterble
+//  View for managing actions that can be taken while in a game.
 //
 //  Created by Finn Lidbetter on 2020-12-26.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.
@@ -9,6 +10,7 @@
 import SwiftUI
 
 struct ActionPanel: View {
+    let gameId: String
     let rackTilesOnBoard: Bool
     let showingPicker: Bool
     
@@ -21,8 +23,13 @@ struct ActionPanel: View {
     
     var body: some View {
         HStack {
+            // Move history
+            NavigationLink(destination: MoveHistoryView(gameId: self.gameId)) {
+                //Image("MoveHistoryIcon").renderingMode(.original)
+                Text("H")
+            }
             // Dictionary
-            NavigationLink(destination: DictionaryView()) {
+            NavigationLink(destination: DictionaryView(gameId: self.gameId)) {
                 //Image("DictionaryIcon").renderingMode(.original)
                 Text("D")
             }

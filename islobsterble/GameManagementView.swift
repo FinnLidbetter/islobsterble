@@ -1,6 +1,7 @@
 //
 //  GameManagementView.swift
 //  islobsterble
+//  View for the main screen.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

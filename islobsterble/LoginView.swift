@@ -1,6 +1,7 @@
 //
 //  LoginView.swift
 //  islobsterble
+//  View for authenticating the user.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.
@@ -45,7 +46,7 @@ struct LoginView: View {
             print("Failed to encode login data")
             return
         }
-        guard let url = URL(string: ROOT_URL + "auth/login") else {
+        guard let url = URL(string: ROOT_URL + "/login") else {
             print("Invalid URL")
             return
         }

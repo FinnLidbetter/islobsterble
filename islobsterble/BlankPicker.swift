@@ -1,6 +1,7 @@
 //
 //  BlankPicker.swift
 //  islobsterble
+//  View for choosing which letter to use for a placed blank tile.
 //
 //  Created by Finn Lidbetter on 2020-12-25.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

@@ -1,6 +1,7 @@
 //
 //  FriendsView.swift
 //  islobsterble
+//  View for managing friends.
 //
 //  Created by Finn Lidbetter on 2020-12-27.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

@@ -1,6 +1,7 @@
 //
 //  IntQueue.swift
 //  islobsterble
+//  Data structure class.
 //
 //  Created by Finn Lidbetter on 2020-12-26.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.

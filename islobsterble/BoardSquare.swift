@@ -1,6 +1,7 @@
 //
 //  BoardSquare.swift
 //  islobsterble
+//  View for styling a square on the game board.
 //
 //  Created by Finn Lidbetter on 2020-12-25.
 //  Copyright © 2020 Finn Lidbetter. All rights reserved.
