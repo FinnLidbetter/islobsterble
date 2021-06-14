@@ -13,9 +13,10 @@ let ROOT_URL = "http://localhost:5000/"
 struct ContentView: View {
     @EnvironmentObject var boardSlots: SlotGrid
     @EnvironmentObject var rackSlots: SlotRow
+    @ObservedObject var accessToken: ManagedAccessToken = ManagedAccessToken()
     
     var body: some View {
-        LoginView()
+        LoginView().environmentObject(accessToken)
     }
 }
 

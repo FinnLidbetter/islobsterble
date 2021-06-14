@@ -16,17 +16,10 @@ struct MoveHistoryView: View {
     @State private var moves: [MoveSerializer] = []
     
     var body: some View {
-        HStack {
-            ForEach(0..<self.friends.count, id: \.self) { index in
-                
-            }
-            List{
-                Section(header: )
-            }
-        }
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
 }
+ 
 
 
 struct MovesSerializer: Codable {

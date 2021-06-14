@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct GameManagementView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
@@ -56,11 +57,14 @@ struct GameManagementView: View {
     }
     
     func fetchActiveGames() {
+        let _ = print(self.accessToken.token!.certificate)
         guard let url = URL(string: ROOT_URL + "api/games") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.setValue(self.accessToken.token!.toHttpHeaderString(), forHTTPHeaderField: "Authorization")
+        let _ = print(request)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -91,11 +95,22 @@ struct GameManagementView: View {
         }
     }
     private func logout() {
-        guard let url = URL(string: ROOT_URL + "auth/logout") else {
+        guard let url = URL(string: ROOT_URL + "api/logout") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        if self.accessToken.isExpired() {
+            let (renewed, message) = self.accessToken.renew()
+            let _ = print(message)
+            if !renewed {
+                DispatchQueue.main.async {
+                    self.presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(self.accessToken.token!.toHttpHeaderString(), forHTTPHeaderField: "Authorization")
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {

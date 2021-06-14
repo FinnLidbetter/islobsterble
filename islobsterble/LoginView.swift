@@ -10,6 +10,8 @@
 import SwiftUI
 
 struct LoginView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
+    
     @State private var username: String = ""
     @State private var password: String = ""
     @State private var loggedIn = false
@@ -29,7 +31,7 @@ struct LoginView: View {
                 TextField("Username", text: $username)
                 Text("Password")
                 SecureField("Password", text: $password)
-                NavigationLink(destination: GameManagementView(), isActive: $loggedIn) {
+                NavigationLink(destination: GameManagementView().environmentObject(self.accessToken), isActive: $loggedIn) {
                     EmptyView()
                 }
                 Button(action: { self.login() }) {
@@ -43,11 +45,9 @@ struct LoginView: View {
     func login() {
         let loginData = LoginData(username: self.username, password: self.password)
         guard let encodedLoginData = try? JSONEncoder().encode(loginData) else {
-            print("Failed to encode login data")
             return
         }
-        guard let url = URL(string: ROOT_URL + "/login") else {
-            print("Invalid URL")
+        guard let url = URL(string: ROOT_URL + "api/login") else {
             return
         }
         var request = URLRequest(url: url)
@@ -57,8 +57,25 @@ struct LoginView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    self.loggedIn = true
-                    self.failureMessage = ""
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .secondsSince1970
+                    if let tokenPair = try? decoder.decode(TokenPair.self, from: data) {
+                        DispatchQueue.main.async {
+                            accessToken.token = tokenPair.access_token
+                        }
+                        let refreshToken = tokenPair.refresh_token
+                        
+                        let valueToStore = refreshToken.toKeyChainString()
+                        
+                        let status = KeyChain.save(location: REFRESH_TAG, value: valueToStore)
+                        if status == noErr {
+                            self.loggedIn = true
+                            self.failureMessage = ""
+                        } else {
+                            self.loggedIn = false
+                            self.failureMessage = status.description
+                        }
+                    }
                 } else {
                     self.failureMessage = String(decoding: data, as: UTF8.self)
                 }

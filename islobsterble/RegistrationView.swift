@@ -46,7 +46,7 @@ struct RegistrationView: View {
             print("Failed to encode registration data")
             return
         }
-        guard let url = URL(string: ROOT_URL + "auth/register") else {
+        guard let url = URL(string: ROOT_URL + "api/register") else {
             print("Invalid URL")
             return
         }

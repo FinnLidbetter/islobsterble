@@ -9,7 +9,7 @@
 
 import SwiftUI
 
-let FRIEND_KEY_LENGTH = 8
+let FRIEND_KEY_LENGTH = 7
 let DEFAULT_DICTIONARY_NAME = "SOWPODS (International)"
 let DEFAULT_DICTIONARY_ID = 2
 
