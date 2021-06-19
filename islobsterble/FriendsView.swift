@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct FriendsView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var myFriendKey = ""
     @State private var friends: [String] = []
     @State private var message = ""
@@ -28,7 +29,7 @@ struct FriendsView: View {
         .navigationBarTitle("Friends", displayMode: .inline)
         .navigationBarItems(
             trailing:
-                NavigationLink(destination: AddFriendView()) {
+                NavigationLink(destination: AddFriendView().environmentObject(self.accessToken)) {
                     // Image(AddFriendIcon)
                     Text("Add Friend")
                 }
@@ -38,11 +39,16 @@ struct FriendsView: View {
         }
     }
     func fetchData() {
+        self.accessToken.renewedRequest(successCompletion: self.fetchDataRequest, errorCompletion: self.fetchDataError)
+    }
+    
+    func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/friends") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -63,6 +69,9 @@ struct FriendsView: View {
                 self.message = "Could not connect to the server."
             }
         }.resume()
+    }
+    private func fetchDataError(error: RenewedRequestError) {
+        print(error)
     }
 }
 

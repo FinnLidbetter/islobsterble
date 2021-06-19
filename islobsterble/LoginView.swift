@@ -75,6 +75,8 @@ struct LoginView: View {
                             self.loggedIn = false
                             self.failureMessage = status.description
                         }
+                    } else {
+                        self.failureMessage = "Error decoding token."
                     }
                 } else {
                     self.failureMessage = String(decoding: data, as: UTF8.self)

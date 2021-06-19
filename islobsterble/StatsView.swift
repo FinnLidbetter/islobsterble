@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct StatsView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var wins = 0
     @State private var draws = 0
     @State private var losses = 0

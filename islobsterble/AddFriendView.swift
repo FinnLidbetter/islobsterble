@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct AddFriendView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friendKey = ""
     @State private var message = ""
     
@@ -25,11 +26,15 @@ struct AddFriendView: View {
         }.navigationBarTitle("Add Friend", displayMode: .inline)
     }
     func submitAddFriend() {
+        self.accessToken.renewedRequest(successCompletion: self.submitAddFriendRequest, errorCompletion: self.addFriendError)
+    }
+    
+    func submitAddFriendRequest(token: Token) {
         guard let encodedFriendKey = try? JSONEncoder().encode(FriendKeySerializer(friend_key: self.friendKey)) else {
             print("Failed to encode data.")
             return
         }
-        guard let url = URL(string: ROOT_URL + "api/add-friend") else {
+        guard let url = URL(string: ROOT_URL + "api/friends") else {
             print("Invalid URL")
             return
         }
@@ -37,6 +42,7 @@ struct AddFriendView: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         request.httpBody = encodedFriendKey
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -49,11 +55,8 @@ struct AddFriendView: View {
             }
         }.resume()
     }
-}
-
-struct AddFriendView_Previews: PreviewProvider {
-    static var previews: some View {
-        AddFriendView()
+    private func addFriendError(error: RenewedRequestError) {
+        print(error)
     }
 }
 

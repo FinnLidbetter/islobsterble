@@ -34,6 +34,7 @@ struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
     
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var numBoardRows = 15
     @State private var numBoardColumns = 15
     @State private var scores = ["Player 1": 0, "Player 2": 0]
@@ -102,7 +103,19 @@ struct PlaySpace: View {
         self.exchangeChosen[index] = !self.exchangeChosen[index]
     }
     
-    private func confirmExchange() {
+    func confirmExchange() {
+        self.accessToken.renewedRequest(successCompletion: self.confirmExchangeRequest, errorCompletion: self.playTurnRenewError)
+    }
+    
+    func confirmPass() {
+        self.accessToken.renewedRequest(successCompletion: self.confirmPassRequest, errorCompletion: self.playTurnRenewError)
+    }
+    
+    func confirmPlay() {
+        self.accessToken.renewedRequest(successCompletion: self.confirmPlayRequest, errorCompletion: self.playTurnRenewError)
+    }
+    
+    private func confirmExchangeRequest(token: Token) {
         var playedTiles = [TurnPlayedTileSerializer]()
         for rackIndex in 0..<NUM_RACK_TILES {
             if self.exchangeChosen[rackIndex] {
@@ -121,16 +134,20 @@ struct PlaySpace: View {
         }
         let turn = TurnSerializer(played_tiles: playedTiles)
         self.showExchangePicker = false
-        self.submitTurn(turn: turn)
+        self.submitTurn(turn: turn, token: token)
     }
     
-    private func confirmPass() {
+    private func playTurnRenewError(error: RenewedRequestError) {
+        print(error)
+    }
+    
+    private func confirmPassRequest(token: Token) {
         let playedTiles = [TurnPlayedTileSerializer]()
         let turn = TurnSerializer(played_tiles: playedTiles)
-        self.submitTurn(turn: turn)
+        self.submitTurn(turn: turn, token: token)
     }
     
-    private func confirmPlay() {
+    private func confirmPlayRequest(token: Token) {
         var playedTiles = [TurnPlayedTileSerializer]()
         for row in 0..<self.numBoardRows {
             for column in 0..<self.numBoardColumns {
@@ -148,20 +165,21 @@ struct PlaySpace: View {
             }
         }
         let turn = TurnSerializer(played_tiles: playedTiles)
-        self.submitTurn(turn: turn)
+        self.submitTurn(turn: turn, token: token)
     }
     
-    private func submitTurn(turn: TurnSerializer) {
-        guard let encodedTurnData = try? JSONEncoder().encode(turn) else {
+    private func submitTurn(turn: TurnSerializer, token: Token) {
+        guard let encodedTurnData = try? JSONEncoder().encode(turn.played_tiles) else {
             print("Failed to encode turn data")
             return
         }
-        guard let url = URL(string: ROOT_URL + "/game/\(self.gameId)") else {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
             print("Invalid URL")
             return
         }
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addAuthorization(token: token)
         request.httpMethod = "POST"
         request.httpBody = encodedTurnData
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -492,12 +510,17 @@ struct PlaySpace: View {
         return rackSquares
     }
     
-    private func getGameState() {
+    func getGameState() {
+        self.accessToken.renewedRequest(successCompletion: self.getGameStateRequest, errorCompletion: self.getGameStateError)
+    }
+    
+    private func getGameStateRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -532,6 +555,10 @@ struct PlaySpace: View {
                 }
             }
         }.resume()
+    }
+    
+    private func getGameStateError(error: RenewedRequestError) {
+        print(error)
     }
     
     private func clearBoard(rows: Int, columns: Int) {

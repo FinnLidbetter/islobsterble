@@ -12,6 +12,7 @@ import SwiftUI
 let OPPONENTS_MAX = 3
 
 struct NewGameView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
     @State private var message = ""
@@ -40,11 +41,16 @@ struct NewGameView: View {
     }
     
     func fetchData() {
+        self.accessToken.renewedRequest(successCompletion: self.fetchDataRequest, errorCompletion: self.fetchDataError)
+    }
+    
+    func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -64,26 +70,32 @@ struct NewGameView: View {
         }.resume()
     }
     
+    private func fetchDataError(error: RenewedRequestError) {
+        print(error)
+    }
+    
     func startGame() {
+        self.accessToken.renewedRequest(successCompletion: self.startGameRequest, errorCompletion: self.startGameError)
+    }
+    
+    private func startGameRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
             print("Invalid URL")
             return
         }
-        var chosenFriends = [Friend]()
+        var chosenFriendIDs = [Int]()
         for friendIndex in self.chosenOpponents {
-            chosenFriends.append(self.friends[friendIndex])
+            chosenFriendIDs.append(self.friends[friendIndex].player_id)
         }
-        let opponentData = NewGameFriendsSerializer(friends: chosenFriends)
-        guard let encodedOpponents = try? JSONEncoder().encode(opponentData) else {
-            print("Failed to encode opponents")
+        guard let encodedOpponents = try? JSONSerialization.data(withJSONObject: chosenFriendIDs) else {
+            print("Failed to encode friend ids")
             return
         }
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addAuthorization(token: token)
         request.httpMethod = "POST"
         request.httpBody = encodedOpponents
-        print(request)
-        print("Sending request")
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -94,6 +106,10 @@ struct NewGameView: View {
                 self.message = "Error: could not connect to the server."
             }
         }.resume()
+    }
+
+    private func startGameError(error: RenewedRequestError) {
+        print(error)
     }
 }
 struct Friend: Codable {

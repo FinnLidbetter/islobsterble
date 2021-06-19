@@ -14,6 +14,7 @@ let DEFAULT_DICTIONARY_NAME = "SOWPODS (International)"
 let DEFAULT_DICTIONARY_ID = 2
 
 struct SettingsView: View {
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var displayName: String = ""
     @State private var friendKey: String = ""
     @State private var dictionaryNames = [DEFAULT_DICTIONARY_NAME]
@@ -57,11 +58,16 @@ struct SettingsView: View {
     }
     
     func getSettings() {
+        self.accessToken.renewedRequest(successCompletion: self.getSettingsRequest, errorCompletion: self.getSettingsError)
+    }
+    
+    private func getSettingsRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/player-settings") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -77,6 +83,8 @@ struct SettingsView: View {
                             self.dictionaryIDs.append(decodedSettings.dictionaries[dictionaryIndex].id)
                         }
                         self.currentDictionaryIndex = self.dictionaryNames.firstIndex(where: {$0 == decodedSettings.player.dictionary.name}) ?? 0
+                    } else {
+                        self.message = "Failed to decode"
                     }
                 } else {
                     self.message = String(decoding: data, as: UTF8.self)
@@ -85,6 +93,10 @@ struct SettingsView: View {
                 self.message = "Error: could not retrieve settings."
             }
         }.resume()
+    }
+    
+    private func getSettingsError(error: RenewedRequestError) {
+        print(error)
     }
     
     func regenerateFriendKey() {
@@ -97,6 +109,10 @@ struct SettingsView: View {
     }
     
     func saveSettings() {
+        self.accessToken.renewedRequest(successCompletion: self.saveSettingsRequest, errorCompletion: self.saveSettingsError)
+    }
+    
+    private func saveSettingsRequest(token: Token) {
         let settings = PlayerSettingsSerializer(
             display_name: self.displayName, dictionary: DictionarySerializer(id: self.dictionaryIDs[self.currentDictionaryIndex], name: self.dictionaryNames[self.currentDictionaryIndex]), friend_key: self.friendKey)
         guard let encodedSettingsData = try? JSONEncoder().encode(settings) else {
@@ -108,6 +124,7 @@ struct SettingsView: View {
             return
         }
         var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         request.httpBody = encodedSettingsData
@@ -122,6 +139,10 @@ struct SettingsView: View {
             }
         }.resume()
     }
+    
+    private func saveSettingsError(error: RenewedRequestError) {
+        print(error)
+    }
 }
 
 struct SettingsSerializer: Codable {
@@ -132,8 +153,18 @@ struct PlayerSettingsSerializer: Codable {
     let display_name: String
     let dictionary: DictionarySerializer
     let friend_key: String
+    var distribution: SimpleDistributionSerializer? = nil
+    var board_layout: SimpleBoardLayoutSerializer? = nil
 }
 struct DictionarySerializer: Codable {
+    let id: Int
+    let name: String
+}
+struct SimpleDistributionSerializer: Codable {
+    let id: Int
+    let name: String
+}
+struct SimpleBoardLayoutSerializer: Codable {
     let id: Int
     let name: String
 }
