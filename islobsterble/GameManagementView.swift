@@ -35,16 +35,39 @@ struct GameManagementView: View {
                     Text("New Game")
                 }
             }
-            Text("Active Games")
-            ForEach(0..<activeGames.count, id: \.self) { index in
-                NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id)).environmentObject(self.accessToken)) {
-                    Text(self.activeGames[index].display())
+            List {
+                Section(header: Text("Active Games")) {
+                    ForEach(0..<activeGames.count, id: \.self) { index in
+                        NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id)).environmentObject(self.accessToken)) {
+                            VStack {
+                                Text(self.activeGames[index].headerString())
+                                HStack{
+                                    ForEach(0..<activeGames[index].game_players.count, id: \.self) { playerIndex in
+                                        Text("\(self.activeGames[index].game_players[playerIndex].player.display_name): \(self.activeGames[index].game_players[playerIndex].score)")
+                                        Spacer()
+                                    }
+
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-            Text("Completed Games")
-            ForEach(0..<completedGames.count, id: \.self) { index in
-                NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id)).environmentObject(self.accessToken)) {
-                    Text(self.completedGames[index].display())
+                Section(header: Text("Completed Games")) {
+                    
+                    ForEach(0..<completedGames.count, id: \.self) { index in
+                        NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id)).environmentObject(self.accessToken)) {
+                            VStack {
+                                Text(self.completedGames[index].headerString())
+                                HStack{
+                                    ForEach(0..<completedGames[index].game_players.count, id: \.self) { playerIndex in
+                                        Text("\(self.completedGames[index].game_players[playerIndex].player.display_name): \(self.completedGames[index].game_players[playerIndex].score)")
+                                        Spacer()
+                                    }
+
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -173,13 +196,11 @@ struct GameInfo: Codable {
     let started: Date
     let completed: Date?
     
-    func display() -> String {
-        var displayEntries: [String] = []
+    func headerString() -> String {
         var bestPlayer = ""
         var bestScore = -1
         var tie = false
         for gamePlayer in self.game_players {
-            displayEntries.append("\(gamePlayer.player.display_name): \(gamePlayer.score)")
             if gamePlayer.score > bestScore {
                 bestScore = gamePlayer.score
                 bestPlayer = gamePlayer.player.display_name
@@ -189,14 +210,14 @@ struct GameInfo: Codable {
             }
         }
         if completed == nil {
-            displayEntries.append("\(self.whose_turn_name) to play")
+            return "\(self.whose_turn_name)'s turn."
         } else {
             if tie {
-                displayEntries.append("It was a draw!")
+                return "It was a draw!"
+            } else {
+                return "\(bestPlayer) won!"
             }
-            displayEntries.append("\(bestPlayer) won!")
         }
-        return displayEntries.joined(separator: "\n")
     }
 }
 struct GamePlayer: Codable {
