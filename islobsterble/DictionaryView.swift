@@ -12,6 +12,7 @@ import SwiftUI
 struct DictionaryView: View {
     let gameId: String
     
+    @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var queryWord: String = ""
     @State private var message = ""
     
@@ -32,24 +33,32 @@ struct DictionaryView: View {
     }
     
     func submitQueryWord() {
+        self.accessToken.renewedRequest(successCompletion: self.submitQueryWordRequest, errorCompletion: self.submitQueryWordError)
+    }
+    
+    private func submitQueryWordRequest(token: Token) {
         let invalidCharacters = "[^a-zA-Z]+"
         self.queryWord = self.queryWord.replacingOccurrences(of: invalidCharacters, with: "", options: [.regularExpression])
+        self.queryWord = self.queryWord.lowercased()
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)/verify-word/\(self.queryWord)") else {
             print("Invalid URL")
             return
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    self.message = "\"\(self.queryWord)\" is a valid word!"
                     if let dictionaryEntry = try? JSONDecoder().decode(DictionaryResponseSerializer.self, from: data) {
-                        if dictionaryEntry.definition != nil {
-                            self.message += "\n\(dictionaryEntry.word): \(dictionaryEntry.definition!)"
+                        if dictionaryEntry.word == nil {
+                            self.message = "\"\(self.queryWord)\" is not in the dictionary."
+                        } else {
+                            self.message = "\"\(self.queryWord)\" is a valid word!"
+                            if dictionaryEntry.definition != nil {
+                                self.message += "\n\(dictionaryEntry.word!): \(dictionaryEntry.definition!)"
+                            }
                         }
                     }
-                } else if response.statusCode == 404 {
-                    self.message = "\"\(self.queryWord)\" is not in the dictionary."
                 } else {
                     self.message = "Unexpected error."
                 }
@@ -58,12 +67,17 @@ struct DictionaryView: View {
             }
         }.resume()
     }
+    
+    private func submitQueryWordError(error: RenewedRequestError) {
+        self.message = "Token renewal error"
+        print(error)
+    }
 }
 
 struct DictionaryWordSerializer: Codable {
     let word: String
 }
 struct DictionaryResponseSerializer: Codable {
-    let word: String
+    let word: String?
     let definition: String?
 }

@@ -12,31 +12,180 @@ import SwiftUI
 
 struct MoveHistoryView: View {
     let gameId: String
-    
-    @State private var moves: [MoveSerializer] = []
+    @EnvironmentObject var accessToken: ManagedAccessToken
+    @State private var playerMoves: [PlayerMovesSerializer] = []
+    @State private var selection: Set<Int> = []
+    @State private var message = ""
     
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            List {
+                Section(header: HStack(spacing: 8) {
+                    ForEach(0..<playerMoves.count, id: \.self) { playerIndex in
+                        Text("\(self.playerMoves[playerIndex].player.display_name)").frame(maxWidth: .infinity)
+                    }
+                }) {
+                    ForEach(0..<self.numMoveRows(), id: \.self) { moveRowIndex in
+                        MoveRowView(isExpanded: self.selection.contains(moveRowIndex), moves: self.rowMoves(row: moveRowIndex)).onTapGesture {
+                            self.selectDeselect(rowIndex: moveRowIndex)
+                        }
+                    }
+                }
+            }.onAppear {
+                self.getMoveHistory()
+            }
+            if self.message != "" {
+                Text(self.message)
+            }
+        }.frame(maxWidth: .infinity)
+    }
+    
+    func getMoveHistory() {
+        self.accessToken.renewedRequest(successCompletion: self.getMoveHistoryRequest, errorCompletion: self.getMoveHistoryError)
+    }
+    
+    private func getMoveHistoryRequest(token: Token) {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)/move-history") else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    let decoder = JSONDecoder()
+                    if let decodedPlayerMoves = try? decoder.decode([PlayerMovesSerializer].self, from: data) {
+                        self.playerMoves = decodedPlayerMoves
+                    } else {
+                        self.message = "Failed to decode"
+                    }
+                } else {
+                    self.message = String(decoding: data, as: UTF8.self)
+                }
+            } else {
+                self.message = "Error: could not retrieve settings."
+            }
+        }.resume()
+    }
+    
+    private func getMoveHistoryError(error: RenewedRequestError) {
+        print(error)
+    }
+    
+    
+    private func numMoveRows() -> Int {
+        if self.playerMoves.count == 0 {
+            return 0
+        }
+        return self.playerMoves[0].moves.count
+    }
+    private func rowMoves(row: Int) -> [MoveSerializer?] {
+        var moves: [MoveSerializer?] = []
+        for playerMoves in self.playerMoves {
+            if row < playerMoves.moves.count {
+                moves.append(playerMoves.moves[row])
+            } else {
+                moves.append(nil)
+            }
+        }
+        return moves
+    }
+    private func selectDeselect(rowIndex: Int) {
+        if self.selection.contains(rowIndex) {
+            self.selection.remove(rowIndex)
+        } else {
+            self.selection.insert(rowIndex)
+        }
+    }
+}
+struct MoveRowView: View {
+    
+    let isExpanded: Bool
+    let moves: [MoveSerializer?]
+    
+    var body: some View {
+        VStack {
+            HStack(spacing: 8) {
+                ForEach(0..<self.moves.count, id: \.self) { playerIndex in
+                    Text(self.primaryDisplayString(move: self.moves[playerIndex])).frame(maxWidth: .infinity)
+                }
+            }
+            if isExpanded {
+                HStack(spacing: 8) {
+                    ForEach(0..<self.moves.count) { playerIndex in
+                        VStack {
+                            ForEach(self.expandDisplayStrings(move: self.moves[playerIndex]), id: \.self) { secondaryWord in
+                                Text(secondaryWord)
+                            }
+                        }.frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }.frame(maxWidth: .infinity)
+    }
+    private func primaryDisplayString(move: MoveSerializer?) -> String {
+        var text = ""
+        if move == nil {
+            return text
+        }
+        if move!.exchanged_tiles.count > 0 {
+            text = "Exchange"
+        } else if move!.primary_word != nil {
+            text = "\(move!.primary_word!):\(move!.score)"
+        } else {
+            text = "Pass"
+        }
+        return text
+    }
+    private func expandDisplayStrings(move: MoveSerializer?) -> [String] {
+        if move == nil {
+            return []
+        }
+        if move!.primary_word != nil && move!.secondary_words != nil {
+            return move!.secondary_words!.components(separatedBy: ",")
+        } else if move!.exchanged_tiles.count > 0 {
+            var exchangedLetters: [String] = []
+            for tileCount in move!.exchanged_tiles {
+                var tileCharacter = ""
+                if tileCount.tile.is_blank {
+                    tileCharacter = "_"
+                } else {
+                    tileCharacter = tileCount.tile.letter!
+                }
+                for _ in 0..<tileCount.count {
+                    exchangedLetters.append(tileCharacter)
+                }
+            }
+            return [exchangedLetters.joined(separator: ",")]
+        }
+        return []
     }
 }
  
 
-
-struct MovesSerializer: Codable {
+struct PlayerMovesSerializer: Codable {
+    let player: HistoryPlayerSerializer
     let moves: [MoveSerializer]
+    let turn_order: Int
+}
+struct HistoryPlayerSerializer: Codable {
+    let id: Int
+    let display_name: String
 }
 struct MoveSerializer: Codable {
-    let game_player: MoveGamePlayerSerializer
-    let primary_word: String
-    let secondary_words: String
-    let tiles_exchanged: Int
+    let primary_word: String?
+    let secondary_words: String?
+    let exchanged_tiles: [HistoryTileCountSerializer]
     let turn_number: Int
     let score: Int
 }
-struct MoveGamePlayerSerializer: Codable {
-    let player: MovePlayerSerializer
+struct HistoryTileCountSerializer: Codable {
+    let tile: HistoryTileSerializer
+    let count: Int
 }
-struct MovePlayerSerializer: Codable {
-    let id: String
-    let display_name: String
+struct HistoryTileSerializer: Codable {
+    let letter: String?
+    let is_blank: Bool
+    let value: Int
 }
