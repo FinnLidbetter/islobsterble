@@ -21,7 +21,11 @@ struct Tile: View {
     var onEnded: ((Letter, Position, Position) -> Void)
     
     var body: some View {
-        Text(self.face.letter == BLANK ? "" : String(self.face.letter))
+        ZStack {
+            Text(self.face.letter == BLANK ? "" : String(self.face.letter)).font(.system(size: CGFloat(Double(self.size) * (2.0/3.0))))
+            Text((self.face.value == nil) || (self.face.value! == 0) ? "" : String(self.face.value!))
+                .font(.system(size: CGFloat(Double(self.size) / 4.0))).position(x: CGFloat(Double(self.size) * (5.0/6.0)), y: CGFloat(Double(self.size) * (5.0/6.0)))
+        }
             .foregroundColor(self.face.is_blank ? Color.red : Color.black)
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .background(

@@ -37,7 +37,8 @@ struct PlaySpace: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var numBoardRows = 15
     @State private var numBoardColumns = 15
-    @State private var scores = ["Player 1": 0, "Player 2": 0]
+    @State private var playerScores = [PlayerScore]()
+    @State private var playerTurnIndex = 0
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var letterMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
@@ -67,7 +68,7 @@ struct PlaySpace: View {
     
     var body: some View {
         VStack {
-            ScorePanel(scores: self.scores)
+            ScorePanel(playerScores: self.playerScores, playerTurnIndex: self.playerTurnIndex)
             Spacer()
             ZStack {
                 VStack(spacing: 20) {
@@ -545,11 +546,16 @@ struct PlaySpace: View {
                                 rackIndex += 1
                             }
                         }
-                        self.scores = [String: Int]()
+                        self.playerScores = []
                         for gamePlayerIndex in 0..<gameState.game_players.count {
-                            let name = gameState.game_players[gamePlayerIndex].player.display_name
-                            let score = gameState.game_players[gamePlayerIndex].score
-                            self.scores[name] = score
+                            self.playerScores.append(
+                                PlayerScore(playerId: gameState.game_players[gamePlayerIndex].player.id,
+                                            playerName: gameState.game_players[gamePlayerIndex].player.display_name,
+                                            score: gameState.game_players[gamePlayerIndex].score,
+                                            turnOrder: gameState.game_players[gamePlayerIndex].score))
+                        }
+                        self.playerScores.sort {
+                            return $0.turnOrder < $1.turnOrder
                         }
                     }
                 }
@@ -601,6 +607,7 @@ struct GameSerializer: Codable {
     let board_state: [PlayedTileSerializer]
     let game_players: [GamePlayerSerializer]
     let board_layout: BoardLayoutSerializer
+    let turn_number: Int
     let whose_turn_name: String
     let num_tiles_remaining: Int
     let rack: [TileCountSerializer]
@@ -621,6 +628,7 @@ struct TileCountSerializer: Codable {
 }
 struct GamePlayerSerializer: Codable {
     let score: Int
+    let turn_order: Int
     let player: PlayerSerializer
 }
 struct PlayerSerializer: Codable {

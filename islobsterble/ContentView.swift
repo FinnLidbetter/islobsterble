@@ -28,4 +28,3 @@ var previewRackSlots = SlotRow(num_slots: 7)
 //        ContentView().environmentObject(previewBoardSlots).environmentObject(previewRackSlots)
 //    }
 //}
-

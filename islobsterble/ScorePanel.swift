@@ -10,27 +10,23 @@
 import SwiftUI
 
 struct ScorePanel: View {
-    let scores: [String: Int]
-    var names: [String]
-    var values: [Int]
-    
-    init(scores: [String: Int]) {
-        self.scores = scores
-        self.names = []
-        self.values = []
-        for (name, value) in scores {
-            names.append(name)
-            values.append(value)
-        }
-    }
+    let playerScores: [PlayerScore]
+    let playerTurnIndex: Int
     
     var body: some View {
         HStack {
-            Text(self.names.count > 0 ? "\(self.names[0]): \(self.values[0])" : "")
-            ForEach(1..<self.names.count, id: \.self) { index in
+            Text(self.playerScores.count > 0 ? "\(self.playerScores[0].playerName): \(self.playerScores[0].score)" : "").padding().background(Rectangle().fill(self.playerTurnIndex == 0 ? Color(.blue) : Color(.clear)))
+            ForEach(min(self.playerScores.count, 1)..<self.playerScores.count, id: \.self) { index in
                 Spacer()
-                Text("\(self.names[index]): \(self.values[index])")
+                Text("\(self.playerScores[index].playerName): \(self.playerScores[index].score)").padding().background(Rectangle().fill(self.playerTurnIndex == index ? Color(.blue) : Color(.clear)))
             }
-        }.padding()
+        }.padding().background(Rectangle().fill(Color(.yellow)))
     }
+}
+
+struct PlayerScore {
+    let playerId: Int
+    let playerName: String
+    let score: Int
+    let turnOrder: Int
 }
