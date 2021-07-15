@@ -33,12 +33,13 @@ enum FrontTaker {
 struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
+    @Binding var loggedIn: Bool
     
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var numBoardRows = 15
     @State private var numBoardColumns = 15
     @State private var playerScores = [PlayerScore]()
-    @State private var playerTurnIndex = 0
+    @State private var turnNumber = 0
     @State private var boardLetters = [[Letter]](repeating: [Letter](repeating: INVISIBLE_LETTER, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var letterMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
@@ -68,7 +69,7 @@ struct PlaySpace: View {
     
     var body: some View {
         VStack {
-            ScorePanel(playerScores: self.playerScores, playerTurnIndex: self.playerTurnIndex)
+            ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
             Spacer()
             ZStack {
                 VStack(spacing: 20) {
@@ -139,7 +140,20 @@ struct PlaySpace: View {
     }
     
     private func playTurnRenewError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            print(sessionError)
+        case .decodeError:
+            print("Decode error")
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            print("URL error")
+        }
     }
     
     private func confirmPassRequest(token: Token) {
@@ -552,11 +566,12 @@ struct PlaySpace: View {
                                 PlayerScore(playerId: gameState.game_players[gamePlayerIndex].player.id,
                                             playerName: gameState.game_players[gamePlayerIndex].player.display_name,
                                             score: gameState.game_players[gamePlayerIndex].score,
-                                            turnOrder: gameState.game_players[gamePlayerIndex].score))
+                                            turnOrder: gameState.game_players[gamePlayerIndex].turn_order))
                         }
                         self.playerScores.sort {
                             return $0.turnOrder < $1.turnOrder
                         }
+                        self.turnNumber = gameState.turn_number
                     }
                 }
             }
@@ -564,7 +579,20 @@ struct PlaySpace: View {
     }
     
     private func getGameStateError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            print(sessionError)
+        case .decodeError:
+            print("Decode error")
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            print("URL error")
+        }
     }
     
     private func clearBoard(rows: Int, columns: Int) {

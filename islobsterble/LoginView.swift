@@ -31,9 +31,9 @@ struct LoginView: View {
                 TextField("Username", text: $username)
                 Text("Password")
                 SecureField("Password", text: $password)
-                NavigationLink(destination: GameManagementView().environmentObject(self.accessToken), isActive: $loggedIn) {
+                NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
                     EmptyView()
-                }
+                }.isDetailLink(false)
                 Button(action: { self.login() }) {
                    Text("Login")
                 }

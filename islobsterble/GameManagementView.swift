@@ -11,61 +11,26 @@ import SwiftUI
 
 struct GameManagementView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @Binding var loggedIn: Bool
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
     
     var body: some View {
         VStack {
-            HStack {
-                NavigationLink(destination: SettingsView().environmentObject(self.accessToken)) {
-                    // Image("SettingsIcon").renderingMode(.original)
-                    Text("Settings")
-                }
-                NavigationLink(destination: StatsView().environmentObject(self.accessToken)) {
-                    // Image("StatsIcon").renderingMode(.original)
-                    Text("Stats")
-                }
-                NavigationLink(destination: FriendsView().environmentObject(self.accessToken)) {
-                    // Image("ContactsIcon").renderingMode(.original)
-                    Text("Friends")
-                }
-                NavigationLink(destination: NewGameView().environmentObject(self.accessToken)) {
-                    // Image("NewGameIcon").renderingMode(.original)
-                    Text("New Game")
-                }
-            }
+            MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
             List {
                 Section(header: Text("Active Games")) {
                     ForEach(0..<activeGames.count, id: \.self) { index in
-                        NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id)).environmentObject(self.accessToken)) {
-                            VStack {
-                                Text(self.activeGames[index].headerString())
-                                HStack{
-                                    ForEach(0..<activeGames[index].game_players.count, id: \.self) { playerIndex in
-                                        Text("\(self.activeGames[index].game_players[playerIndex].player.display_name): \(self.activeGames[index].game_players[playerIndex].score)")
-                                        Spacer()
-                                    }
-
-                                }
-                            }
-                        }
+                        NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                            GameLink(game: self.activeGames[index])
+                        }.isDetailLink(false)
                     }
                 }
                 Section(header: Text("Completed Games")) {
                     
                     ForEach(0..<completedGames.count, id: \.self) { index in
-                        NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id)).environmentObject(self.accessToken)) {
-                            VStack {
-                                Text(self.completedGames[index].headerString())
-                                HStack{
-                                    ForEach(0..<completedGames[index].game_players.count, id: \.self) { playerIndex in
-                                        Text("\(self.completedGames[index].game_players[playerIndex].player.display_name): \(self.completedGames[index].game_players[playerIndex].score)")
-                                        Spacer()
-                                    }
-
-                                }
-                            }
+                        NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                            GameLink(game: self.completedGames[index])
                         }
                     }
                 }
@@ -84,7 +49,6 @@ struct GameManagementView: View {
     }
     
     func fetchActiveGamesRequest(renewedAccessToken: Token) {
-        let _ = print("In fetch games completion!")
         guard let url = URL(string: ROOT_URL + "api/games") else {
             print("Invalid URL")
             return
@@ -114,7 +78,20 @@ struct GameManagementView: View {
         }.resume()
     }
     func fetchActiveGamesErrorCompletion(error: RenewedRequestError) {
-        let _ = print("Error!")
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            print(sessionError)
+        case .decodeError:
+            print("Decode error")
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            print("URL error")
+        }
     }
     
     var logoutButton: some View {
@@ -140,9 +117,7 @@ struct GameManagementView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    DispatchQueue.main.async {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
+                    self.loggedIn = false
                 } else {
                     print(response)
                 }
@@ -156,34 +131,62 @@ struct GameManagementView: View {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
-                DispatchQueue.main.async {
-                    self.presentationMode.wrappedValue.dismiss()
-                }
+                self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
             print(sessionError)
         case .decodeError:
             print("Decode error")
         case .keyChainRetrieveError:
-            DispatchQueue.main.async {
-                self.presentationMode.wrappedValue.dismiss()
-            }
+            self.loggedIn = false
         case .urlError:
             print("URL error")
         }
     }
 }
-
-extension UINavigationController: UIGestureRecognizerDelegate {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        interactivePopGestureRecognizer?.delegate = self
-    }
-
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        return viewControllers.count > 1
+struct MenuItems: View {
+    @Binding var loggedIn: Bool
+    @EnvironmentObject var accessToken: ManagedAccessToken
+    
+    var body: some View {
+        HStack {
+            NavigationLink(destination: SettingsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                // Image("SettingsIcon").renderingMode(.original)
+                Text("Settings")
+            }.isDetailLink(false)
+            NavigationLink(destination: StatsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                // Image("StatsIcon").renderingMode(.original)
+                Text("Stats")
+            }.isDetailLink(false)
+            NavigationLink(destination: FriendsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                // Image("ContactsIcon").renderingMode(.original)
+                Text("Friends")
+            }.isDetailLink(false)
+            NavigationLink(destination: NewGameView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                // Image("NewGameIcon").renderingMode(.original)
+                Text("New Game")
+            }.isDetailLink(false)
+        }
     }
 }
+
+struct GameLink: View {
+    let game: GameInfo
+    
+    var body: some View {
+        VStack {
+            Text(self.game.headerString())
+            HStack{
+                ForEach(0..<self.game.game_players.count, id: \.self) { playerIndex in
+                    Text("\(self.game.game_players[playerIndex].player.display_name): \(self.game.game_players[playerIndex].score)")
+                    Spacer()
+                }
+
+            }
+        }
+    }
+}
+
 
 struct Games: Codable {
     let games: [GameInfo]

@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct AddFriendView: View {
+    @Binding var loggedIn: Bool
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friendKey = ""
     @State private var message = ""

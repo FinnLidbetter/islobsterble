@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct FriendsView: View {
+    @Binding var loggedIn: Bool
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var myFriendKey = ""
     @State private var friends: [String] = []
@@ -29,7 +30,7 @@ struct FriendsView: View {
         .navigationBarTitle("Friends", displayMode: .inline)
         .navigationBarItems(
             trailing:
-                NavigationLink(destination: AddFriendView().environmentObject(self.accessToken)) {
+                NavigationLink(destination: AddFriendView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
                     // Image(AddFriendIcon)
                     Text("Add Friend")
                 }

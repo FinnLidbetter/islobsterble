@@ -25,42 +25,6 @@ class ManagedAccessToken: ObservableObject {
         return now.addingTimeInterval(renewAccessBufferTime) > self.token!.expiration_date
     }
     
-    func renew() -> (Bool, String) {
-        guard let receivedData = KeyChain.load(location: REFRESH_TAG) else {
-            return (false, "Could not retrieve refresh token from keychain")
-        }
-        let refreshTokenString = String(decoding: receivedData, as: UTF8.self)
-        let refreshToken = Token(keyChainString: refreshTokenString)
-        
-        guard let url = URL(string: ROOT_URL + "api/refresh-access") else {
-            return (false, "Bad URL")
-        }
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(refreshToken.toHttpHeaderString(), forHTTPHeaderField: "Authorization")
-        request.httpMethod = "POST"
-        var success = false
-        var resultString = ""
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let data = data, let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .secondsSince1970
-                    if let token = try? decoder.decode(Token.self, from: data) {
-                        self.token = token
-                        success = true
-                        resultString = "Success"
-                    }
-                } else {
-                    resultString = String(decoding: data, as: UTF8.self)
-                }
-            } else {
-                resultString = "Could not connect to the server."
-            }
-        }.resume()
-        return (success, resultString)
-    }
-    
     func renewedRequest(successCompletion: @escaping ((Token) -> Void), errorCompletion: @escaping ((RenewedRequestError) -> Void)) -> Void {
         if !self.isExpired() {
             successCompletion(self.token!)

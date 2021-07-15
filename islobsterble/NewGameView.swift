@@ -12,6 +12,7 @@ import SwiftUI
 let OPPONENTS_MAX = 3
 
 struct NewGameView: View {
+    @Binding var loggedIn: Bool
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])

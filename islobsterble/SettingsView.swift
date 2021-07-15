@@ -14,6 +14,7 @@ let DEFAULT_DICTIONARY_NAME = "SOWPODS (International)"
 let DEFAULT_DICTIONARY_ID = 2
 
 struct SettingsView: View {
+    @Binding var loggedIn: Bool
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var displayName: String = ""
     @State private var friendKey: String = ""
