@@ -11,6 +11,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
+    @EnvironmentObject var notificationTracker: NotificationTracker
     
     @State private var username: String = ""
     @State private var password: String = ""
@@ -43,7 +44,12 @@ struct LoginView: View {
     }
     
     func login() {
-        let loginData = LoginData(username: self.username, password: self.password)
+        let userNotificationCenter = UNUserNotificationCenter.current()
+        userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            print("Permission granted: \(granted)")
+        }
+        
+        let loginData = LoginData(username: self.username, password: self.password, deviceToken: self.notificationTracker.deviceTokenString)
         guard let encodedLoginData = try? JSONEncoder().encode(loginData) else {
             return
         }
@@ -91,4 +97,5 @@ struct LoginView: View {
 struct LoginData: Codable {
     let username: String
     let password: String
+    let deviceToken: String?
 }

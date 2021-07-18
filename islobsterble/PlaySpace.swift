@@ -35,6 +35,8 @@ struct PlaySpace: View {
     let gameId: String
     @Binding var loggedIn: Bool
     
+    @EnvironmentObject var notificationTracker: NotificationTracker
+    
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var numBoardRows = 15
     @State private var numBoardColumns = 15
@@ -102,6 +104,12 @@ struct PlaySpace: View {
         .navigationBarTitle("Game", displayMode: .inline)
         .onAppear() {
             self.getGameState()
+        }
+        .onChange(of: notificationTracker.refreshGames) { gamesToRefresh in
+            if gamesToRefresh.contains(self.gameId) {
+                self.getGameState()
+                notificationTracker.refreshGames.remove(self.gameId)
+            }
         }
     }
     

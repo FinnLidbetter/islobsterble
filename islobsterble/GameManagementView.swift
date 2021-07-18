@@ -11,6 +11,7 @@ import SwiftUI
 
 struct GameManagementView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
+    @EnvironmentObject var notificationTracker: NotificationTracker
     @Binding var loggedIn: Bool
     @State private var errorMessage = ""
     @State private var activeGames = [GameInfo]()
@@ -43,6 +44,12 @@ struct GameManagementView: View {
             .navigationBarItems(leading: logoutButton)
             .onAppear {
                 self.fetchActiveGames()
+            }
+            .onChange(of: notificationTracker.refreshGames) { gamesToRefresh in
+                if gamesToRefresh.count > 0 {
+                    self.fetchActiveGames()
+                    self.notificationTracker.refreshGames = []
+                }
             }
             ErrorView(errorMessage: self.$errorMessage)
         }

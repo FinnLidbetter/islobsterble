@@ -14,6 +14,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     var boardSlots = SlotGrid(num_rows: 15, num_columns: 15)
     var rackSlots = SlotRow(num_slots: 7)
+    var notificationTracker = NotificationTracker()
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
@@ -27,7 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: contentView.environmentObject(boardSlots).environmentObject(rackSlots))
+            window.rootViewController = UIHostingController(rootView: contentView.environmentObject(boardSlots).environmentObject(rackSlots).environmentObject(notificationTracker))
             self.window = window
             window.makeKeyAndVisible()
         }

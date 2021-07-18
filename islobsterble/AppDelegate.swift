@@ -7,14 +7,19 @@
 //
 
 import UIKit
+import SwiftUI
+
+let ROOT_URL = "http://localhost:5000/"
+
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        UIApplication.shared.registerForRemoteNotifications()
+        UNUserNotificationCenter.current().delegate = self
         return true
     }
 
@@ -31,7 +36,98 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
+    
+    // Handle remote notification registration.
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenComponents = deviceToken.map { data in String(format: "%02.2hhx", data) }
+        let deviceTokenString = tokenComponents.joined()
 
+        self.setDeviceTokenInTracker(tokenString: deviceTokenString)
+    }
+
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        // The token is not currently available.
+        print("Remote notification support is unavailable due to error: \(error.localizedDescription)")
+        let firstScene = UIApplication.shared.connectedScenes.first
+        guard let firstSceneDelegate : SceneDelegate = (firstScene?.delegate as? SceneDelegate) else {
+            return
+        }
+        let thing = firstSceneDelegate.notificationTracker
+        
+        print(thing)
+    }
+
+    func setDeviceTokenInTracker(tokenString: String) {
+        let firstScene = UIApplication.shared.connectedScenes.first
+        guard let firstSceneDelegate: SceneDelegate = (firstScene?.delegate as? SceneDelegate) else {
+            return
+        }
+        firstSceneDelegate.notificationTracker.deviceTokenString = tokenString
+        
+        print("Token: \(tokenString)")
+        let queryItems = [URLQueryItem(name: "deviceToken", value: tokenString)]
+        var urlComps = URLComponents(string: "www.example.com/register")!
+        urlComps.queryItems = queryItems
+        guard let url = urlComps.url else {
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
+            if error != nil {
+                // Handle the error
+                return
+            }
+            guard response != nil else {
+                // Handle empty response
+                return
+            }
+            guard data != nil else {
+                // Handle empty data
+                return
+            }
+
+            // Handle data
+        }
+
+        task.resume()
+    }
+
+    /* Example Payload
+     {
+         "aps" : {
+            "alert" : {
+                 "title" : "Check out our new special!",
+                 "body" : "Avocado Bacon Burger on sale"
+             },
+             "sound" : "default",
+             "badge" : 1,
+        },
+         "special" : "avocado_bacon_burger",
+         "price" : "9.99"
+     }
+     */
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        
+        guard let gameId = userInfo["game_id"] as? String else {
+            completionHandler()
+            return
+        }
+        
+        let firstScene = UIApplication.shared.connectedScenes.first
+        guard let firstSceneDelegate : SceneDelegate = (firstScene?.delegate as? SceneDelegate) else {
+            completionHandler()
+            return
+        }
+        firstSceneDelegate.notificationTracker.refreshGames.insert(gameId)
+
+        // Always call the completion handler when done.
+        completionHandler()
+    }
 
 }
 
