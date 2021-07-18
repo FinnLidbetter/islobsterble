@@ -22,39 +22,43 @@ struct SettingsView: View {
     @State private var dictionaryIDs = [DEFAULT_DICTIONARY_ID]
     @State private var currentDictionaryIndex = 0
     @State private var message: String = ""
+    @State private var errorMessage: String = ""
     
     var body: some View {
-        VStack {
-            List {
-                Section(header: Text("User Settings")) {
-                    HStack {
-                        Text("Display name: ")
-                        TextField("", text: $displayName)
-                    }
-                    HStack {
-                        Text("Friend key: ")
-                        Text(self.friendKey)
-                        Spacer()
-                        Button(action: self.regenerateFriendKey) {
-                            //Image("RegenerateKeyIcon").renderingMode(.original)
-                            Text("R")
+        ZStack {
+            VStack {
+                List {
+                    Section(header: Text("User Settings")) {
+                        HStack {
+                            Text("Display name: ")
+                            TextField("", text: $displayName)
+                        }
+                        HStack {
+                            Text("Friend key: ")
+                            Text(self.friendKey)
+                            Spacer()
+                            Button(action: self.regenerateFriendKey) {
+                                //Image("RegenerateKeyIcon").renderingMode(.original)
+                                Text("R")
+                            }
                         }
                     }
+                }.navigationBarTitle("Settings", displayMode: .inline)
+                Text("Dictionary:")
+                Picker(selection: $currentDictionaryIndex, label: Text("Choose a Dictionary to use.")) {
+                    ForEach(0..<self.dictionaryNames.count, id: \.self) { index in
+                        Text(self.dictionaryNames[index])
+                    }
                 }
-            }.navigationBarTitle("Settings", displayMode: .inline)
-            Text("Dictionary:")
-            Picker(selection: $currentDictionaryIndex, label: Text("Choose a Dictionary to use.")) {
-                ForEach(0..<self.dictionaryNames.count, id: \.self) { index in
-                    Text(self.dictionaryNames[index])
+                Button(action: self.saveSettings) {
+                    Text("Save")
                 }
+                Text(self.message)
+                Spacer()
+            }.onAppear {
+                self.getSettings()
             }
-            Button(action: self.saveSettings) {
-                Text("Save")
-            }
-            Text(self.message)
-            Spacer()
-        }.onAppear {
-            self.getSettings()
+            ErrorView(errorMessage: self.$errorMessage)
         }
     }
     
@@ -64,7 +68,7 @@ struct SettingsView: View {
     
     private func getSettingsRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/player-settings") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing player settings URL."
             return
         }
         var request = URLRequest(url: url)
@@ -85,19 +89,33 @@ struct SettingsView: View {
                         }
                         self.currentDictionaryIndex = self.dictionaryNames.firstIndex(where: {$0 == decodedSettings.player.dictionary.name}) ?? 0
                     } else {
-                        self.message = "Failed to decode"
+                        self.errorMessage = "Internal error decoding player settings data."
                     }
                 } else {
-                    self.message = String(decoding: data, as: UTF8.self)
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Error: could not retrieve settings."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
     
     private func getSettingsError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh token for getting settings."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for getting settings."
+        }
     }
     
     func regenerateFriendKey() {
@@ -131,18 +149,35 @@ struct SettingsView: View {
         request.httpBody = encodedSettingsData
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
-                self.message = String(decoding: data, as: UTF8.self)
+                
                 if response.statusCode == 200 {
                     self.getSettings()
+                    self.message = "Settings saved."
+                } else {
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Could not connect to server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
     
     private func saveSettingsError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in saving settings."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for saving settings."
+        }
     }
 }
 

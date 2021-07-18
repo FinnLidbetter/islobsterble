@@ -20,11 +20,12 @@ struct ExchangePicker: View {
         VStack {
             Text("Select Tiles to Exchange")
             HStack {
+                Spacer()
                 ForEach(0..<NUM_RACK_TILES) { index in
                     Button(action: {
                         self.onSelectTile(index)
                     }) {
-                        Tile(size: Int(SCREEN_SIZE.width * 0.8) / NUM_RACK_TILES,
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / NUM_RACK_TILES,
                              face: self.rackLetters[index],
                              position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
                              allowDrag: false,
@@ -34,6 +35,7 @@ struct ExchangePicker: View {
                         .opacity(self.chosen[index] ? 0.2 : 1.0)
                     }
                 }
+                Spacer()
             }
             HStack {
                 Button(action: {

@@ -14,29 +14,32 @@ struct FriendsView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var myFriendKey = ""
     @State private var friends: [String] = []
-    @State private var message = ""
+    @State private var errorMessage = ""
     
     var body: some View {
-        List {
-            Section(header: Text("Friend Key")) {
-                Text("\(self.myFriendKey)")
-            }
-            Section(header: Text("Friends")) {
-                ForEach(0..<self.friends.count, id: \.self) { index in
-                    Text("\(self.friends[index])")
+        ZStack {
+            List {
+                Section(header: Text("Friend Key")) {
+                    Text("\(self.myFriendKey)")
+                }
+                Section(header: Text("Friends")) {
+                    ForEach(0..<self.friends.count, id: \.self) { index in
+                        Text("\(self.friends[index])")
+                    }
                 }
             }
-        }
-        .navigationBarTitle("Friends", displayMode: .inline)
-        .navigationBarItems(
-            trailing:
-                NavigationLink(destination: AddFriendView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                    // Image(AddFriendIcon)
-                    Text("Add Friend")
-                }
-        )
-        .onAppear {
-            self.fetchData()
+            .navigationBarTitle("Friends", displayMode: .inline)
+            .navigationBarItems(
+                trailing:
+                    NavigationLink(destination: AddFriendView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                        // Image(AddFriendIcon)
+                        Text("Add Friend")
+                    }
+            )
+            .onAppear {
+                self.fetchData()
+            }
+            ErrorView(errorMessage: self.$errorMessage)
         }
     }
     func fetchData() {
@@ -45,7 +48,7 @@ struct FriendsView: View {
     
     func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/friends") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing Friends API URL."
             return
         }
         var request = URLRequest(url: url)
@@ -60,19 +63,33 @@ struct FriendsView: View {
                             self.friends.append(decodedData.friends[friendIndex].display_name)
                         }
                     } else {
-                        print("Error decoding data")
+                        self.errorMessage = "Internal error decoding friends data."
                         return
                     }
                 } else {
-                    self.message = String(decoding: data, as: UTF8.self)
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Could not connect to the server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
     private func fetchDataError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in friends view."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for friends data fetch."
+        }
     }
 }
 

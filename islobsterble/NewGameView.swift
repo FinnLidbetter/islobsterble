@@ -16,28 +16,31 @@ struct NewGameView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
-    @State private var message = ""
+    @State private var errorMessage = ""
     
     var body: some View {
-        Button(action: self.startGame) {
-            Text("Create Game")
-        }.disabled(self.chosenOpponents.count == 0 || self.chosenOpponents.count > OPPONENTS_MAX)
-        List {
-            ForEach(0..<self.friends.count, id: \.self) { index in
-                Button(action: {
-                    if chosenOpponents.contains(index) {
-                        chosenOpponents.remove(index)
-                    } else {
-                        chosenOpponents.insert(index)
+        ZStack {
+            Button(action: self.startGame) {
+                Text("Create Game")
+            }.disabled(self.chosenOpponents.count == 0 || self.chosenOpponents.count > OPPONENTS_MAX)
+            List {
+                ForEach(0..<self.friends.count, id: \.self) { index in
+                    Button(action: {
+                        if chosenOpponents.contains(index) {
+                            chosenOpponents.remove(index)
+                        } else {
+                            chosenOpponents.insert(index)
+                        }
+                    }) {
+                        Text(self.friends[index].display_name).fontWeight(chosenOpponents.contains(index) ? .heavy : .light)
                     }
-                }) {
-                    Text(self.friends[index].display_name).fontWeight(chosenOpponents.contains(index) ? .heavy : .light)
                 }
             }
-        }
-        .navigationBarTitle("New Game", displayMode: .inline)
-        .onAppear {
-            self.fetchData()
+            .navigationBarTitle("New Game", displayMode: .inline)
+            .onAppear {
+                self.fetchData()
+            }
+            ErrorView(errorMessage: self.$errorMessage)
         }
     }
     
@@ -47,7 +50,7 @@ struct NewGameView: View {
     
     func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing new game URL."
             return
         }
         var request = URLRequest(url: url)
@@ -57,16 +60,15 @@ struct NewGameView: View {
                 if response.statusCode == 200 {
                     if let decodedData = try? JSONDecoder().decode(NewGameFriendsSerializer.self, from: data) {
                         self.friends = decodedData.friends
-                        print(self.friends)
                     } else {
-                        print("Error decoding data")
+                        self.errorMessage = "Internal error decoding list of friends for new game."
                         return
                     }
                 } else {
-                    self.message = String(decoding: data, as: UTF8.self)
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Could not connect to the server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
@@ -81,7 +83,7 @@ struct NewGameView: View {
     
     private func startGameRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing URL for new game request."
             return
         }
         var chosenFriendIDs = [Int]()
@@ -89,7 +91,7 @@ struct NewGameView: View {
             chosenFriendIDs.append(self.friends[friendIndex].player_id)
         }
         guard let encodedOpponents = try? JSONSerialization.data(withJSONObject: chosenFriendIDs) else {
-            print("Failed to encode friend ids")
+            self.errorMessage = "Internal error encoding opponents data."
             return
         }
         var request = URLRequest(url: url)
@@ -101,16 +103,31 @@ struct NewGameView: View {
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     self.chosenOpponents = Set([])
+                } else {
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
-                self.message = String(decoding: data, as: UTF8.self)
             } else {
-                self.message = "Error: could not connect to the server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
 
     private func startGameError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in new game request."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for new game request."
+        }
     }
 }
 struct Friend: Codable {

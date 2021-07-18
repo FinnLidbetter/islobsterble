@@ -15,26 +15,30 @@ struct RegistrationView: View {
     @State private var confirmPassword: String = ""
     @State private var displayName: String = ""
     @State private var message: String = ""
+    @State private var errorMessage: String = ""
     @State private var success = false
     
     var body: some View {
-        VStack {
-            Group {
-                Text("Username")
-                TextField("Username", text: $username)
-                Text("Password")
-                SecureField("Password", text: $password)
-                Text(self.password == self.confirmPassword ? "" : "Passwords do not match.")
-                Text("Confirm Password")
-                SecureField("Confirm Password", text: $confirmPassword)
-                Text("Display Name")
-                TextField("Display Name", text: $displayName)
-            }
-            Button(action: self.register) {
-                Text("Register")
-            }.disabled(self.password != self.confirmPassword || self.username == "" || self.displayName == "")
-            Text(self.message)
-        }.navigationBarTitle("Register", displayMode: .inline)
+        ZStack {
+            VStack {
+                Group {
+                    Text("Username")
+                    TextField("Username", text: $username)
+                    Text("Password")
+                    SecureField("Password", text: $password)
+                    Text(self.password == self.confirmPassword ? "" : "Passwords do not match.")
+                    Text("Confirm Password")
+                    SecureField("Confirm Password", text: $confirmPassword)
+                    Text("Display Name")
+                    TextField("Display Name", text: $displayName)
+                }
+                Button(action: self.register) {
+                    Text("Register")
+                }.disabled(self.password != self.confirmPassword || self.username == "" || self.displayName == "")
+                Text(self.message)
+            }.navigationBarTitle("Register", displayMode: .inline)
+            ErrorView(errorMessage: self.$errorMessage)
+        }
     }
     func register() {
         let registrationData = RegistrationData(
@@ -43,11 +47,11 @@ struct RegistrationView: View {
             confirmed_password: self.confirmPassword,
             display_name: self.displayName)
         guard let encodedRegistrationData = try? JSONEncoder().encode(registrationData) else {
-            print("Failed to encode registration data")
+            self.errorMessage = "Internal error encoding registration data."
             return
         }
         guard let url = URL(string: ROOT_URL + "api/register") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing registration URL."
             return
         }
         var request = URLRequest(url: url)
@@ -58,11 +62,13 @@ struct RegistrationView: View {
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     self.success = true
+                    self.message = "Successful registration for user '\(self.username)'."
+                } else {
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
-                self.message = String(decoding: data, as: UTF8.self)
             } else {
                 self.success = false
-                self.message = "Could not connect to the server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }

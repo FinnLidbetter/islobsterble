@@ -14,17 +14,21 @@ struct AddFriendView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friendKey = ""
     @State private var message = ""
+    @State private var errorMessage = ""
     
     var body: some View {
-        VStack {
-            Text("Friend Key")
-            TextField("Enter Friend Key", text: $friendKey)
-            Button(action: self.submitAddFriend) {
-                Text("Submit")
-            }
-            Text(self.message)
-            Spacer()
-        }.navigationBarTitle("Add Friend", displayMode: .inline)
+        ZStack {
+            VStack {
+                Text("Friend Key")
+                TextField("Enter Friend Key", text: $friendKey)
+                Button(action: self.submitAddFriend) {
+                    Text("Submit")
+                }
+                Spacer()
+                Text(self.message)
+            }.navigationBarTitle("Add Friend", displayMode: .inline)
+            ErrorView(errorMessage: self.$errorMessage)
+        }
     }
     func submitAddFriend() {
         self.accessToken.renewedRequest(successCompletion: self.submitAddFriendRequest, errorCompletion: self.addFriendError)
@@ -32,11 +36,11 @@ struct AddFriendView: View {
     
     func submitAddFriendRequest(token: Token) {
         guard let encodedFriendKey = try? JSONEncoder().encode(FriendKeySerializer(friend_key: self.friendKey)) else {
-            print("Failed to encode data.")
+            self.errorMessage = "Internal error encoding friend key."
             return
         }
         guard let url = URL(string: ROOT_URL + "api/friends") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error constructing URL for adding friends."
             return
         }
         var request = URLRequest(url: url)
@@ -48,16 +52,32 @@ struct AddFriendView: View {
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     self.message = "Success"
+                    self.friendKey = ""
                 } else {
-                    self.message = String(decoding: data, as: UTF8.self)
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Error: could not connect to the server."
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
+    
     private func addFriendError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in add friends view."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for add friends data submission."
+        }
     }
 }
 

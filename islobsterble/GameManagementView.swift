@@ -12,35 +12,39 @@ import SwiftUI
 struct GameManagementView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @Binding var loggedIn: Bool
+    @State private var errorMessage = ""
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
     
     var body: some View {
-        VStack {
-            MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
-            List {
-                Section(header: Text("Active Games")) {
-                    ForEach(0..<activeGames.count, id: \.self) { index in
-                        NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                            GameLink(game: self.activeGames[index])
-                        }.isDetailLink(false)
+        ZStack {
+            VStack {
+                MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
+                List {
+                    Section(header: Text("Active Games")) {
+                        ForEach(0..<activeGames.count, id: \.self) { index in
+                            NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                                GameLink(game: self.activeGames[index])
+                            }.isDetailLink(false)
+                        }
                     }
-                }
-                Section(header: Text("Completed Games")) {
-                    
-                    ForEach(0..<completedGames.count, id: \.self) { index in
-                        NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                            GameLink(game: self.completedGames[index])
+                    Section(header: Text("Completed Games")) {
+                        
+                        ForEach(0..<completedGames.count, id: \.self) { index in
+                            NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                                GameLink(game: self.completedGames[index])
+                            }
                         }
                     }
                 }
             }
-        }
-        .navigationBarTitle("Menu", displayMode: .inline)
-        .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading: logoutButton)
-        .onAppear {
-            self.fetchActiveGames()
+            .navigationBarTitle("Menu", displayMode: .inline)
+            .navigationBarBackButtonHidden(true)
+            .navigationBarItems(leading: logoutButton)
+            .onAppear {
+                self.fetchActiveGames()
+            }
+            ErrorView(errorMessage: self.$errorMessage)
         }
     }
     
@@ -71,9 +75,13 @@ struct GameManagementView: View {
                             }
                         }
                     } else {
-                        print("Fetch games decoding error")
+                        self.errorMessage = "Internal error decoding game management view data."
                     }
+                } else {
+                    self.errorMessage = "Internal error fetching game management view data."
                 }
+            } else {
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
@@ -84,13 +92,14 @@ struct GameManagementView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
             print(sessionError)
         case .decodeError:
-            print("Decode error")
+            self.errorMessage = "Internal error decoding token refresh data in game management view."
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            print("URL error")
+            self.errorMessage = "Internal URL error in token refresh for game management view."
         }
     }
     
@@ -119,10 +128,10 @@ struct GameManagementView: View {
                 if response.statusCode == 200 {
                     self.loggedIn = false
                 } else {
-                    print(response)
+                    self.errorMessage = "Unexpected internal logout error."
                 }
             } else {
-                print(error!)
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
@@ -134,13 +143,14 @@ struct GameManagementView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
             print(sessionError)
         case .decodeError:
-            print("Decode error")
+            self.errorMessage = "Internal error decoding token refresh data in logging out."
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            print("URL error")
+            self.errorMessage = "Internal URL error in token refresh for logout."
         }
     }
 }

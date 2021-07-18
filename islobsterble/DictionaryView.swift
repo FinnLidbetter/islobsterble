@@ -13,14 +13,16 @@ struct DictionaryView: View {
     let gameId: String
     
     @EnvironmentObject var accessToken: ManagedAccessToken
+    @Binding var loggedIn: Bool
     @State private var queryWord: String = ""
     @State private var message = ""
+    @State private var errorMessage = ""
     
     var body: some View {
         VStack {
             TextField("", text: $queryWord)
                 .background(
-                    Rectangle().fill(Color.white).border(Color.black, width: 2))
+                    Rectangle().fill(Color.white).border(Color.black, width: 2).padding())
                 .padding()
             Button(action: self.submitQueryWord) {
                 Text("Lookup Word")
@@ -60,17 +62,30 @@ struct DictionaryView: View {
                         }
                     }
                 } else {
-                    self.message = "Unexpected error."
+                    self.errorMessage = "Internal error in dictionary lookup."
                 }
             } else {
-                self.message = "Could not connect to server."
+                self.message = CONNECTION_ERROR_STR
             }
         }.resume()
     }
     
     private func submitQueryWordError(error: RenewedRequestError) {
-        self.message = "Token renewal error"
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in dictionary lookup."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for dictionary lookup."
+        }
     }
 }
 

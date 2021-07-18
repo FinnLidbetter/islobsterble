@@ -13,31 +13,32 @@ import SwiftUI
 struct MoveHistoryView: View {
     let gameId: String
     @EnvironmentObject var accessToken: ManagedAccessToken
+    @Binding var loggedIn: Bool
     @State private var playerMoves: [PlayerMovesSerializer] = []
     @State private var selection: Set<Int> = []
-    @State private var message = ""
+    @State private var errorMessage = ""
     
     var body: some View {
-        VStack {
-            List {
-                Section(header: HStack(spacing: 8) {
-                    ForEach(0..<playerMoves.count, id: \.self) { playerIndex in
-                        Text("\(self.playerMoves[playerIndex].player.display_name)").frame(maxWidth: .infinity)
-                    }
-                }) {
-                    ForEach(0..<self.numMoveRows(), id: \.self) { moveRowIndex in
-                        MoveRowView(isExpanded: self.selection.contains(moveRowIndex), moves: self.rowMoves(row: moveRowIndex)).onTapGesture {
-                            self.selectDeselect(rowIndex: moveRowIndex)
+        ZStack {
+            VStack {
+                List {
+                    Section(header: HStack(spacing: 8) {
+                        ForEach(0..<playerMoves.count, id: \.self) { playerIndex in
+                            Text("\(self.playerMoves[playerIndex].player.display_name)").frame(maxWidth: .infinity)
+                        }
+                    }) {
+                        ForEach(0..<self.numMoveRows(), id: \.self) { moveRowIndex in
+                            MoveRowView(isExpanded: self.selection.contains(moveRowIndex), moves: self.rowMoves(row: moveRowIndex)).onTapGesture {
+                                self.selectDeselect(rowIndex: moveRowIndex)
+                            }
                         }
                     }
+                }.onAppear {
+                    self.getMoveHistory()
                 }
-            }.onAppear {
-                self.getMoveHistory()
-            }
-            if self.message != "" {
-                Text(self.message)
-            }
-        }.frame(maxWidth: .infinity)
+            }.frame(maxWidth: .infinity)
+            ErrorView(errorMessage: self.$errorMessage)
+        }
     }
     
     func getMoveHistory() {
@@ -58,19 +59,33 @@ struct MoveHistoryView: View {
                     if let decodedPlayerMoves = try? decoder.decode([PlayerMovesSerializer].self, from: data) {
                         self.playerMoves = decodedPlayerMoves
                     } else {
-                        self.message = "Failed to decode"
+                        self.errorMessage = "Internal error. Failed to decode move history data."
                     }
                 } else {
-                    self.message = String(decoding: data, as: UTF8.self)
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.message = "Error: could not retrieve settings."
+                self.errorMessage = "."
             }
         }.resume()
     }
     
     private func getMoveHistoryError(error: RenewedRequestError) {
-        print(error)
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in getting move history."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for getting move history."
+        }
     }
     
     

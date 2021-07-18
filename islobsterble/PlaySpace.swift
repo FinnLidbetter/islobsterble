@@ -49,6 +49,7 @@ struct PlaySpace: View {
     @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     
+    // Variables for managing Z-positioning of dragged tiles.
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     
     // Variables for the blank picker.
@@ -60,40 +61,43 @@ struct PlaySpace: View {
     @State private var showExchangePicker = false
     @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
     
-    // For debugging.
-    @State private var message = ""
+    // Error message
+    @State private var errorMessage = ""
     
     // Environment variables.
     @EnvironmentObject var boardSlots: SlotGrid
     @EnvironmentObject var rackSlots: SlotRow
     
     var body: some View {
-        VStack {
-            ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
-            Spacer()
-            ZStack {
-                VStack(spacing: 20) {
-                    BoardBackground(boardSquares: setupBoardSquares())
-                    RackBackground(rackSquares: setupRackSquares())
+        ZStack {
+            VStack {
+                ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
+                Spacer()
+                ZStack {
+                    VStack(spacing: 20) {
+                        BoardBackground(boardSquares: setupBoardSquares())
+                        RackBackground(rackSquares: setupRackSquares())
+                    }
+                    VStack(spacing: 20) {
+                        BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
+                        RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
+                    }
+                    BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
+                    ExchangePicker(isPresented: $showExchangePicker, rackLetters: self.rackLetters, chosen: $exchangeChosen, onSelectTile: self.chooseTileForExchange, onExchange: self.confirmExchange)
                 }
-                VStack(spacing: 20) {
-                    BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
-                    RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
-                }
-                BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
-                ExchangePicker(isPresented: $showExchangePicker, rackLetters: self.rackLetters, chosen: $exchangeChosen, onSelectTile: self.chooseTileForExchange, onExchange: self.confirmExchange)
+                ActionPanel(
+                    loggedIn: self.$loggedIn,
+                    gameId: self.gameId,
+                    rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
+                    showingPicker: self.showBlankPicker || self.showExchangePicker,
+                    onShuffle: self.shuffleTiles,
+                    onRecall: self.recallTiles,
+                    onPass: self.confirmPass,
+                    onPlay: self.confirmPlay,
+                    onExchange: self.selectExchange
+                )
             }
-            ActionPanel(
-                gameId: self.gameId,
-                rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
-                showingPicker: self.showBlankPicker || self.showExchangePicker,
-                onShuffle: self.shuffleTiles,
-                onRecall: self.recallTiles,
-                onPass: self.confirmPass,
-                onPlay: self.confirmPlay,
-                onExchange: self.selectExchange
-            )
-            Text(self.message)
+            ErrorView(errorMessage: self.$errorMessage)
         }
         .navigationBarTitle("Game", displayMode: .inline)
         .onAppear() {
@@ -146,13 +150,14 @@ struct PlaySpace: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
             print(sessionError)
         case .decodeError:
-            print("Decode error")
+            self.errorMessage = "Internal decode error."
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            print("URL error")
+            self.errorMessage = "Internal URL error."
         }
     }
     
@@ -185,11 +190,11 @@ struct PlaySpace: View {
     
     private func submitTurn(turn: TurnSerializer, token: Token) {
         guard let encodedTurnData = try? JSONEncoder().encode(turn.played_tiles) else {
-            print("Failed to encode turn data")
+            self.errorMessage = "Internal error encoding turn data."
             return
         }
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error creating submit turn URL."
             return
         }
         var request = URLRequest(url: url)
@@ -200,11 +205,12 @@ struct PlaySpace: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    print("Success")
+                    self.errorMessage = ""
+                } else {
+                    self.errorMessage = String(decoding: data, as: UTF8.self)
                 }
-                self.message = String(decoding: data, as: UTF8.self)
             } else {
-                self.message = String(decoding: data!, as: UTF8.self)
+                self.errorMessage = CONNECTION_ERROR_STR
             }
             self.getGameState()
         }.resume()
@@ -531,7 +537,7 @@ struct PlaySpace: View {
     
     private func getGameStateRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
-            print("Invalid URL")
+            self.errorMessage = "Internal error creating get game state URL."
             return
         }
         var request = URLRequest(url: url)
@@ -574,6 +580,8 @@ struct PlaySpace: View {
                         self.turnNumber = gameState.turn_number
                     }
                 }
+            } else {
+                self.errorMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
@@ -585,13 +593,14 @@ struct PlaySpace: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
             print(sessionError)
         case .decodeError:
-            print("Decode error")
+            self.errorMessage = "Internal error decoding token refresh data in getting game state."
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            print("URL error")
+            self.errorMessage = "Internal URL error in token refresh for getting game state."
         }
     }
     

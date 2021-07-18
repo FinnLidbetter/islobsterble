@@ -82,7 +82,7 @@ struct LoginView: View {
                     self.failureMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.failureMessage = "Could not connect to the server."
+                self.failureMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
