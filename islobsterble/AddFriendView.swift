@@ -21,6 +21,9 @@ struct AddFriendView: View {
             VStack {
                 Text("Friend Key")
                 TextField("Enter Friend Key", text: $friendKey)
+                    .multilineTextAlignment(.center)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.all, 18)
                 Button(action: self.submitAddFriend) {
                     Text("Submit")
                 }

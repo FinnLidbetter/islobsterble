@@ -50,13 +50,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         // The token is not currently available.
         print("Remote notification support is unavailable due to error: \(error.localizedDescription)")
-        let firstScene = UIApplication.shared.connectedScenes.first
-        guard let firstSceneDelegate : SceneDelegate = (firstScene?.delegate as? SceneDelegate) else {
-            return
-        }
-        let thing = firstSceneDelegate.notificationTracker
-        
-        print(thing)
     }
 
     func setDeviceTokenInTracker(tokenString: String) {
@@ -65,33 +58,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             return
         }
         firstSceneDelegate.notificationTracker.deviceTokenString = tokenString
-        
-        print("Token: \(tokenString)")
-        let queryItems = [URLQueryItem(name: "deviceToken", value: tokenString)]
-        var urlComps = URLComponents(string: "www.example.com/register")!
-        urlComps.queryItems = queryItems
-        guard let url = urlComps.url else {
-            return
-        }
-
-        let task = URLSession.shared.dataTask(with: url) { (data: Data?, response: URLResponse?, error: Error?) in
-            if error != nil {
-                // Handle the error
-                return
-            }
-            guard response != nil else {
-                // Handle empty response
-                return
-            }
-            guard data != nil else {
-                // Handle empty data
-                return
-            }
-
-            // Handle data
-        }
-
-        task.resume()
     }
 
     /* Example Payload

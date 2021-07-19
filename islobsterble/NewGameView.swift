@@ -20,25 +20,27 @@ struct NewGameView: View {
     
     var body: some View {
         ZStack {
-            Button(action: self.startGame) {
-                Text("Create Game")
-            }.disabled(self.chosenOpponents.count == 0 || self.chosenOpponents.count > OPPONENTS_MAX)
-            List {
-                ForEach(0..<self.friends.count, id: \.self) { index in
-                    Button(action: {
-                        if chosenOpponents.contains(index) {
-                            chosenOpponents.remove(index)
-                        } else {
-                            chosenOpponents.insert(index)
+            VStack {
+                Button(action: self.startGame) {
+                    Text("Create Game")
+                }.disabled(self.chosenOpponents.count == 0 || self.chosenOpponents.count > OPPONENTS_MAX)
+                List {
+                    ForEach(0..<self.friends.count, id: \.self) { index in
+                        Button(action: {
+                            if chosenOpponents.contains(index) {
+                                chosenOpponents.remove(index)
+                            } else {
+                                chosenOpponents.insert(index)
+                            }
+                        }) {
+                            Text(self.friends[index].display_name).fontWeight(chosenOpponents.contains(index) ? .heavy : .light)
                         }
-                    }) {
-                        Text(self.friends[index].display_name).fontWeight(chosenOpponents.contains(index) ? .heavy : .light)
                     }
                 }
-            }
-            .navigationBarTitle("New Game", displayMode: .inline)
-            .onAppear {
-                self.fetchData()
+                .navigationBarTitle("New Game", displayMode: .inline)
+                .onAppear {
+                    self.fetchData()
+                }
             }
             ErrorView(errorMessage: self.$errorMessage)
         }

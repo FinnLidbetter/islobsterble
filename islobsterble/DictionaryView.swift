@@ -26,7 +26,7 @@ struct DictionaryView: View {
                 .padding(.all, 18)
             Button(action: self.submitQueryWord) {
                 Text("Lookup Word")
-            }
+            }.disabled(self.queryWord == "")
             Text("\(self.message)")
             // Rack
             // Board
