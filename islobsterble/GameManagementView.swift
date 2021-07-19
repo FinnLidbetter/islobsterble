@@ -171,19 +171,25 @@ struct MenuItems: View {
                 // Image("SettingsIcon").renderingMode(.original)
                 Text("Settings")
             }.isDetailLink(false)
+            Spacer()
             NavigationLink(destination: StatsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
                 // Image("StatsIcon").renderingMode(.original)
                 Text("Stats")
             }.isDetailLink(false)
+            Spacer()
             NavigationLink(destination: FriendsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
                 // Image("ContactsIcon").renderingMode(.original)
                 Text("Friends")
             }.isDetailLink(false)
+            Spacer()
             NavigationLink(destination: NewGameView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
                 // Image("NewGameIcon").renderingMode(.original)
                 Text("New Game")
             }.isDetailLink(false)
         }
+        .padding(.top, 10)
+        .padding(.leading, 18)
+        .padding(.trailing, 18)
     }
 }
 

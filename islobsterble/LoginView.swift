@@ -19,27 +19,39 @@ struct LoginView: View {
     @State private var failureMessage = ""
     
     
+    var registerButton: some View {
+        NavigationLink(destination: RegistrationView()) {
+            Text("Register").fontWeight(.regular)
+        }
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
-                HStack {
-                    Spacer()
-                    NavigationLink(destination: RegistrationView()) {
-                        Text("Register")
-                    }
-                }
-                Text("Username")
-                TextField("Username", text: $username)
-                Text("Password")
-                SecureField("Password", text: $password)
-                NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
-                    EmptyView()
-                }.isDetailLink(false)
-                Button(action: { self.login() }) {
-                   Text("Login")
-                }
+                Spacer()
+                VStack {
+                    Text("Username")
+                    TextField("Username", text: $username)
+                        .multilineTextAlignment(.center)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.bottom, 18)
+                    Text("Password")
+                    SecureField("Password", text: $password)
+                        .multilineTextAlignment(.center)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
+                        EmptyView()
+                    }.isDetailLink(false)
+                    Button(action: { self.login() }) {
+                       Text("Login")
+                    }.padding(18)
+                }.padding(18)
+                Spacer()
                 Text(self.failureMessage)
-            }.navigationBarTitle("Login", displayMode: .inline)
+
+            }
+            .navigationBarTitle("Login", displayMode: .inline)
+            .navigationBarItems(trailing: registerButton)
         }
     }
     

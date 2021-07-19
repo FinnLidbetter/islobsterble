@@ -21,9 +21,9 @@ struct DictionaryView: View {
     var body: some View {
         VStack {
             TextField("", text: $queryWord)
-                .background(
-                    Rectangle().fill(Color.white).border(Color.black, width: 2).padding())
-                .padding()
+                .multilineTextAlignment(.center)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.all, 18)
             Button(action: self.submitQueryWord) {
                 Text("Lookup Word")
             }
