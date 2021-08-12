@@ -16,6 +16,8 @@ struct GameManagementView: View {
     @State private var errorMessage = ""
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
+    @ObservedObject var boardSlots = SlotGrid(num_rows: 15, num_columns: 15)
+    @ObservedObject var rackSlots = SlotRow(num_slots: 7)
     
     var body: some View {
         ZStack {
@@ -24,7 +26,7 @@ struct GameManagementView: View {
                 List {
                     Section(header: Text("Active Games")) {
                         ForEach(0..<activeGames.count, id: \.self) { index in
-                            NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                            NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken).environmentObject(self.boardSlots).environmentObject(self.rackSlots)) {
                                 GameLink(game: self.activeGames[index])
                             }.isDetailLink(false)
                         }

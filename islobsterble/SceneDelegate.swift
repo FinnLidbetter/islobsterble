@@ -12,8 +12,6 @@ import SwiftUI
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-    var boardSlots = SlotGrid(num_rows: 15, num_columns: 15)
-    var rackSlots = SlotRow(num_slots: 7)
     var notificationTracker = NotificationTracker()
 
 
@@ -24,11 +22,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView()
-
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: contentView.environmentObject(boardSlots).environmentObject(rackSlots).environmentObject(notificationTracker))
+            window.rootViewController = UIHostingController(rootView: contentView.environmentObject(notificationTracker))
             self.window = window
             window.makeKeyAndVisible()
         }
