@@ -20,11 +20,9 @@ struct RackSquare: View {
             .fill(self.color)
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .overlay(
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear {
-                            self.rackSlots.slots[self.index] = geo.frame(in: .global)
-                    }
+                GeometryReader { geo -> Color in
+                    self.rackSlots.update(index: self.index, rect: geo.frame(in: .global))
+                    return Color.clear
                 }
             )
     }

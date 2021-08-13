@@ -15,4 +15,10 @@ class SlotRow: ObservableObject {
     init(num_slots: Int) {
         self.slots = [CGRect](repeating: .zero, count: num_slots)
     }
+    
+    func update(index: Int, rect: CGRect) {
+        if self.slots[index] != rect {
+            self.slots[index] = rect
+        }
+    }
 }

@@ -15,4 +15,10 @@ class SlotGrid: ObservableObject {
     init(num_rows: Int, num_columns: Int) {
         self.grid = [[CGRect]](repeating: [CGRect](repeating: .zero, count: num_columns), count: num_rows)
     }
+    
+    func update(row: Int, column: Int, rect: CGRect) {
+        if self.grid[row][column] != rect {
+            self.grid[row][column] = rect
+        }
+    }
 }

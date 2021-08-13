@@ -27,27 +27,27 @@ struct ActionPanel: View {
             // Move history
             NavigationLink(destination: MoveHistoryView(gameId: self.gameId, loggedIn: self.$loggedIn)) {
                 //Image("MoveHistoryIcon").renderingMode(.original)
-                Text("H")
+                Text("History")
             }.isDetailLink(false)
             // Dictionary
             NavigationLink(destination: DictionaryView(gameId: self.gameId, loggedIn: self.$loggedIn)) {
                 //Image("DictionaryIcon").renderingMode(.original)
-                Text("D")
+                Text("Dictionary")
             }.isDetailLink(false)
             // Exchange
             Button(action: self.onExchange) {
                 //Image("ExchangeIcon")
-                Text("E")
+                Text("Exchange")
             }
             // Shuffle/recall
             Button(action: self.rackTilesOnBoard ? self.onRecall : self.onShuffle) {
                 //Image(self.rackTilesOneBoard ? "RecallIcon" : "ShuffleIcon").renderingMode(.original)
-                Text(self.rackTilesOnBoard ? "R" : "S")
+                Text(self.rackTilesOnBoard ? "Recall" : "Shuffle")
             }
             // Pass/play
             Button(action: self.rackTilesOnBoard ? self.onPlay : self.onPass) {
                 //Image(self.rackTilesOnBoard ? "PlayIcon" : "PassIcon").renderingMode(.original)
-                Text("P")
+                Text(self.rackTilesOnBoard ? "Play" : "Pass")
             }
         }.allowsHitTesting(!self.showingPicker)
     }

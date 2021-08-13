@@ -72,6 +72,7 @@ struct PlaySpace: View {
     
     var body: some View {
         ZStack {
+            //Color().edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
             VStack {
                 ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
                 Spacer()
@@ -97,7 +98,7 @@ struct PlaySpace: View {
                     onPass: self.confirmPass,
                     onPlay: self.confirmPlay,
                     onExchange: self.selectExchange
-                )
+                ).padding()
             }
             ErrorView(errorMessage: self.$errorMessage)
         }
@@ -457,13 +458,21 @@ struct PlaySpace: View {
         self.rackShuffleState = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     }
     
+    private func getBoardSquareSize() -> Int {
+        return (self.width - 10) / self.numBoardColumns
+    }
+    private func getRackSquareSize() -> Int {
+        return (self.width - 10) / NUM_RACK_TILES
+    }
+    
     private func setupBoardTiles() -> [[Tile]] {
         var boardTiles: [[Tile]] = []
+        let boardSquareSize = self.getBoardSquareSize()
         for row in 0..<self.numBoardRows {
             var boardRow: [Tile] = []
             for column in 0..<self.numBoardColumns {
                 boardRow.append(Tile(
-                    size: self.width / self.numBoardColumns,
+                    size: boardSquareSize,
                     face: boardLetters[row][column],
                     position: Position(boardRow: row, boardColumn: column, rackIndex: nil),
                     allowDrag: true,
@@ -478,11 +487,11 @@ struct PlaySpace: View {
     
     private func setupBoardSquares() -> [[BoardSquare]] {
         var boardSquares: [[BoardSquare]] = []
-        let size = self.width / self.numBoardColumns
+        let boardSquareSize = self.getBoardSquareSize()
         for row in 0..<self.numBoardRows {
             var boardSquareRow: [BoardSquare] = []
             for column in 0..<self.numBoardColumns {
-                boardSquareRow.append(BoardSquare(size: size, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
+                boardSquareRow.append(BoardSquare(size: boardSquareSize, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
             }
             boardSquares.append(boardSquareRow)
         }
@@ -505,9 +514,10 @@ struct PlaySpace: View {
     
     private func setupRackTiles() -> [Tile] {
         var rackTiles: [Tile] = []
+        let rackTileSize = self.getRackSquareSize()
         for index in 0..<NUM_RACK_TILES {
             rackTiles.append(Tile(
-                    size: self.width / NUM_RACK_TILES,
+                    size: rackTileSize,
                     face: self.rackLetters[index],
                     position: Position(boardRow: nil, boardColumn: nil, rackIndex: index),
                     allowDrag: true,
@@ -519,9 +529,10 @@ struct PlaySpace: View {
     
     private func setupShuffleState() -> [Tile] {
         var shuffleTiles: [Tile] = []
+        let rackTileSize = self.getRackSquareSize()
         for index in 0..<NUM_RACK_TILES {
             shuffleTiles.append(Tile(
-                size: self.width / NUM_RACK_TILES,
+                size: rackTileSize,
                 face: self.rackShuffleState[index],
                 position: Position(boardRow: nil, boardColumn: nil, rackIndex: index),
                 allowDrag: true,
@@ -533,8 +544,9 @@ struct PlaySpace: View {
     
     private func setupRackSquares() -> [RackSquare] {
         var rackSquares: [RackSquare] = []
+        let rackSquareSize = self.getRackSquareSize()
         for index in 0..<NUM_RACK_TILES {
-            rackSquares.append(RackSquare(size: self.width / NUM_RACK_TILES, color: Color.green, index: index))
+            rackSquares.append(RackSquare(size: rackSquareSize, color: Color.clear, index: index))
         }
         return rackSquares
     }

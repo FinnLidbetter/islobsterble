@@ -9,6 +9,12 @@
 
 import SwiftUI
 
+let BOARD_COLOR = Color(red: 155 / 255, green: 250 / 255, blue: 255 / 255)
+let TRIPLE_WORD_COLOR = Color(red: 245 / 255, green: 39 / 255, blue: 39 / 255)
+let DOUBLE_WORD_COLOR = Color(red: 245 / 255, green: 131 / 255, blue: 131 / 255)
+let TRIPLE_LETTER_COLOR = Color(red: 50 / 255, green: 70 / 255, blue: 170 / 255)
+let DOUBLE_LETTER_COLOR = Color(red: 70 / 255, green: 130 / 255, blue: 210 / 255)
+
 struct BoardSquare: View {
     
     let size: Int
@@ -22,22 +28,32 @@ struct BoardSquare: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .fill(Color.gray)
+                .fill(self.getSquareColor())
                 .border(Color.black)
-            LetterMultiplierShape()
-                .fill(self.letterMultiplierColor()).padding(1)
-            WordMultiplierShape()
-                .fill(self.wordMultiplierColor()).padding(1)
+            //Rectangle().fill(self.letterMultiplierColor())
+            //Rectangle().fill(self.wordMultiplierColor())
+            //LetterMultiplierShape()
+                //.fill(self.letterMultiplierColor()).padding(1)
+            //WordMultiplierShape()
+                //.fill(self.wordMultiplierColor()).padding(1)
         }
         .frame(width: CGFloat(size), height: CGFloat(size))
         .overlay(
-            GeometryReader { geo in
-                Color.clear
-                    .onAppear {
-                        self.boardSlots.grid[self.row][self.column] = geo.frame(in: .global)
-                }
+            GeometryReader { geo -> Color in
+                self.boardSlots.update(row: self.row, column: self.column, rect: geo.frame(in: .global))
+                return Color.clear
             }
         )
+    }
+    
+    func getSquareColor() -> Color {
+        if self.letterMultiplierColor() != Color.clear {
+            return self.letterMultiplierColor()
+        }
+        if self.wordMultiplierColor() != Color.clear {
+            return self.wordMultiplierColor()
+        }
+        return BOARD_COLOR
     }
     
     func letterMultiplierColor() -> Color {
@@ -45,10 +61,10 @@ struct BoardSquare: View {
             return Color.clear
         }
         if self.letterMultiplier == 2 {
-            return Color.blue
+            return DOUBLE_LETTER_COLOR
         }
         if self.letterMultiplier == 3 {
-            return Color.purple
+            return TRIPLE_LETTER_COLOR
         }
         return Color.red
     }
@@ -58,10 +74,10 @@ struct BoardSquare: View {
             return Color.clear
         }
         if self.wordMultiplier == 2 {
-            return Color.orange
+            return DOUBLE_WORD_COLOR
         }
         if self.wordMultiplier == 3 {
-            return Color.red
+            return TRIPLE_WORD_COLOR
         }
         return Color.blue
     }
