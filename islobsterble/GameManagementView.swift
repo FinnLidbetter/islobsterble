@@ -13,6 +13,8 @@ struct GameManagementView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @EnvironmentObject var notificationTracker: NotificationTracker
     @Binding var loggedIn: Bool
+    @State private var selectedGameId: String? = nil
+    @State private var inGame: Bool = false
     @State private var errorMessage = ""
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
@@ -23,20 +25,34 @@ struct GameManagementView: View {
         ZStack {
             VStack {
                 MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
+                VStack {
+                    if self.selectedGameId != nil {
+                        NavigationLink(destination: PlaySpace(gameId: self.selectedGameId!, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken).environmentObject(self.boardSlots).environmentObject(self.rackSlots), isActive: self.$inGame) {
+                            EmptyView()
+                        }.isDetailLink(false)
+                    }
+                }.hidden()
                 List {
                     Section(header: Text("Active Games")) {
                         ForEach(0..<activeGames.count, id: \.self) { index in
-                            NavigationLink(destination: PlaySpace(gameId: String(self.activeGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken).environmentObject(self.boardSlots).environmentObject(self.rackSlots)) {
+                            Button(
+                                action: {
+                                    self.selectedGameId = String(self.activeGames[index].id)
+                                    self.inGame = true
+                                }){
                                 GameLink(game: self.activeGames[index])
-                            }.isDetailLink(false)
+                            }.buttonStyle(PlainButtonStyle())
                         }
                     }
                     Section(header: Text("Completed Games")) {
-                        
                         ForEach(0..<completedGames.count, id: \.self) { index in
-                            NavigationLink(destination: PlaySpace(gameId: String(self.completedGames[index].id), loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+                            Button(
+                                action: {
+                                    self.selectedGameId = String(self.completedGames[index].id)
+                                    self.inGame = true
+                                }){
                                 GameLink(game: self.completedGames[index])
-                            }
+                            }.buttonStyle(PlainButtonStyle())
                         }
                     }
                 }
@@ -199,9 +215,10 @@ struct GameLink: View {
     let game: GameInfo
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
             Text(self.game.headerString())
             HStack{
+                Spacer()
                 ForEach(0..<self.game.game_players.count, id: \.self) { playerIndex in
                     Text("\(self.game.game_players[playerIndex].player.display_name): \(self.game.game_players[playerIndex].score)")
                     Spacer()

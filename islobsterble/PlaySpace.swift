@@ -34,6 +34,7 @@ struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
     let gameId: String
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
     
     @EnvironmentObject var notificationTracker: NotificationTracker
     
@@ -72,7 +73,6 @@ struct PlaySpace: View {
     
     var body: some View {
         ZStack {
-            //Color().edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
             VStack {
                 ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
                 Spacer()
@@ -90,6 +90,7 @@ struct PlaySpace: View {
                 }
                 ActionPanel(
                     loggedIn: self.$loggedIn,
+                    inGame: self.$loggedIn,
                     gameId: self.gameId,
                     rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
                     showingPicker: self.showBlankPicker || self.showExchangePicker,
@@ -103,6 +104,8 @@ struct PlaySpace: View {
             ErrorView(errorMessage: self.$errorMessage)
         }
         .navigationBarTitle("Game", displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: backToMenu)
         .onAppear() {
             self.getGameState()
         }
@@ -110,6 +113,15 @@ struct PlaySpace: View {
             if gamesToRefresh.contains(self.gameId) {
                 self.getGameState()
                 notificationTracker.refreshGames.remove(self.gameId)
+            }
+        }
+    }
+    
+    var backToMenu: some View {
+        Button(action: { self.inGame = false }) {
+            HStack {
+                Image("back_arrow").aspectRatio(contentMode: .fit)
+                Text("Menu")
             }
         }
     }
@@ -156,6 +168,7 @@ struct PlaySpace: View {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
+                self.inGame = false
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
@@ -164,6 +177,7 @@ struct PlaySpace: View {
         case .decodeError:
             self.errorMessage = "Internal decode error."
         case .keyChainRetrieveError:
+            self.inGame = false
             self.loggedIn = false
         case .urlError:
             self.errorMessage = "Internal URL error."
@@ -610,6 +624,7 @@ struct PlaySpace: View {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
+                self.inGame = false
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
@@ -618,6 +633,7 @@ struct PlaySpace: View {
         case .decodeError:
             self.errorMessage = "Internal error decoding token refresh data in getting game state."
         case .keyChainRetrieveError:
+            self.inGame = false
             self.loggedIn = false
         case .urlError:
             self.errorMessage = "Internal URL error in token refresh for getting game state."
@@ -629,6 +645,7 @@ struct PlaySpace: View {
         self.locked = Array(repeating: Array(repeating: false, count: columns), count: rows)
         self.wordMultipliers = Array(repeating: Array(repeating: 1, count: columns), count: rows)
         self.letterMultipliers = Array(repeating: Array(repeating: 1, count: columns), count: rows)
+        self.rackTilesOnBoardCount = 0
     }
     
     private func clearRack() {

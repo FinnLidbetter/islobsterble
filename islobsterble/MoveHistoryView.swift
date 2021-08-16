@@ -14,6 +14,7 @@ struct MoveHistoryView: View {
     let gameId: String
     @EnvironmentObject var accessToken: ManagedAccessToken
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
     @State private var playerMoves: [PlayerMovesSerializer] = []
     @State private var selection: Set<Int> = []
     @State private var errorMessage = ""
@@ -74,6 +75,7 @@ struct MoveHistoryView: View {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
+                self.inGame = false
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
@@ -82,6 +84,7 @@ struct MoveHistoryView: View {
         case .decodeError:
             self.errorMessage = "Internal error decoding token refresh data in getting move history."
         case .keyChainRetrieveError:
+            self.inGame = false
             self.loggedIn = false
         case .urlError:
             self.errorMessage = "Internal URL error in token refresh for getting move history."

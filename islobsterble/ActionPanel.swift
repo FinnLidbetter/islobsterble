@@ -11,6 +11,7 @@ import SwiftUI
 
 struct ActionPanel: View {
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
     let gameId: String
     let rackTilesOnBoard: Bool
     let showingPicker: Bool
@@ -25,12 +26,12 @@ struct ActionPanel: View {
     var body: some View {
         HStack {
             // Move history
-            NavigationLink(destination: MoveHistoryView(gameId: self.gameId, loggedIn: self.$loggedIn)) {
+            NavigationLink(destination: MoveHistoryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
                 //Image("MoveHistoryIcon").renderingMode(.original)
                 Text("History")
             }.isDetailLink(false)
             // Dictionary
-            NavigationLink(destination: DictionaryView(gameId: self.gameId, loggedIn: self.$loggedIn)) {
+            NavigationLink(destination: DictionaryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
                 //Image("DictionaryIcon").renderingMode(.original)
                 Text("Dictionary")
             }.isDetailLink(false)

@@ -14,6 +14,7 @@ struct DictionaryView: View {
     
     @EnvironmentObject var accessToken: ManagedAccessToken
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
     @State private var queryWord: String = ""
     @State private var message = ""
     @State private var errorMessage = ""
@@ -23,6 +24,7 @@ struct DictionaryView: View {
             TextField("", text: $queryWord)
                 .multilineTextAlignment(.center)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .textCase(.lowercase)
                 .padding(.all, 18)
             Button(action: self.submitQueryWord) {
                 Text("Lookup Word")
@@ -74,6 +76,7 @@ struct DictionaryView: View {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
+                self.inGame = false
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
@@ -82,6 +85,7 @@ struct DictionaryView: View {
         case .decodeError:
             self.errorMessage = "Internal error decoding token refresh data in dictionary lookup."
         case .keyChainRetrieveError:
+            self.inGame = false
             self.loggedIn = false
         case .urlError:
             self.errorMessage = "Internal URL error in token refresh for dictionary lookup."
