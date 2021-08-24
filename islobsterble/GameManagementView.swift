@@ -18,8 +18,6 @@ struct GameManagementView: View {
     @State private var errorMessage = ""
     @State private var activeGames = [GameInfo]()
     @State private var completedGames = [GameInfo]()
-    @ObservedObject var boardSlots = SlotGrid(num_rows: 15, num_columns: 15)
-    @ObservedObject var rackSlots = SlotRow(num_slots: 7)
     
     var body: some View {
         ZStack {
@@ -27,7 +25,7 @@ struct GameManagementView: View {
                 MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
                 VStack {
                     if self.selectedGameId != nil {
-                        NavigationLink(destination: PlaySpace(gameId: self.selectedGameId!, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken).environmentObject(self.boardSlots).environmentObject(self.rackSlots), isActive: self.$inGame) {
+                        NavigationLink(destination: PlaySpace(gameId: self.selectedGameId!, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken), isActive: self.$inGame) {
                             EmptyView()
                         }.isDetailLink(false)
                     }

@@ -30,12 +30,6 @@ struct BoardSquare: View {
             Rectangle()
                 .fill(self.getSquareColor())
                 .border(Color.black)
-            //Rectangle().fill(self.letterMultiplierColor())
-            //Rectangle().fill(self.wordMultiplierColor())
-            //LetterMultiplierShape()
-                //.fill(self.letterMultiplierColor()).padding(1)
-            //WordMultiplierShape()
-                //.fill(self.wordMultiplierColor()).padding(1)
         }
         .frame(width: CGFloat(size), height: CGFloat(size))
         .overlay(

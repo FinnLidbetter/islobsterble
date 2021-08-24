@@ -11,8 +11,6 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @EnvironmentObject var boardSlots: SlotGrid
-    @EnvironmentObject var rackSlots: SlotRow
     @ObservedObject var accessToken: ManagedAccessToken = ManagedAccessToken()
     
     var body: some View {
@@ -20,8 +18,8 @@ struct ContentView: View {
     }
 }
 
-var previewBoardSlots = SlotGrid(num_rows: 15, num_columns: 15)
-var previewRackSlots = SlotRow(num_slots: 7)
+//var previewBoardSlots = SlotGrid(num_rows: 15, num_columns: 15)
+//var previewRackSlots = SlotRow(num_slots: 7)
 
 //struct ContentView_Previews: PreviewProvider {
 //    static var previews: some View {

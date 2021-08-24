@@ -68,8 +68,8 @@ struct PlaySpace: View {
     @State private var errorMessage = ""
     
     // Environment variables.
-    @EnvironmentObject var boardSlots: SlotGrid
-    @EnvironmentObject var rackSlots: SlotRow
+    @ObservedObject var boardSlots = SlotGrid(num_rows: DEFAULT_ROWS, num_columns: DEFAULT_COLUMNS)
+    @ObservedObject var rackSlots = SlotRow(num_slots: NUM_RACK_TILES)
     
     var body: some View {
         ZStack {
@@ -78,8 +78,8 @@ struct PlaySpace: View {
                 Spacer()
                 ZStack {
                     VStack(spacing: 20) {
-                        BoardBackground(boardSquares: setupBoardSquares())
-                        RackBackground(rackSquares: setupRackSquares())
+                        BoardBackground(boardSquares: setupBoardSquares()).environmentObject(self.boardSlots)
+                        RackBackground(rackSquares: setupRackSquares()).environmentObject(self.rackSlots)
                     }
                     VStack(spacing: 20) {
                         BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
@@ -649,9 +649,8 @@ struct PlaySpace: View {
     }
     
     private func clearRack() {
-        for rackIndex in 0..<NUM_RACK_TILES {
-            self.rackLetters[rackIndex] = INVISIBLE_LETTER
-        }
+        self.rackLetters = Array(repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
+        self.rackShuffleState = Array(repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     }
 }
 

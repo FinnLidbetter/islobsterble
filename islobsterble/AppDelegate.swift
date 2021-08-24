@@ -9,8 +9,8 @@
 import UIKit
 import SwiftUI
 
-let ROOT_URL = "http://127.0.0.1:5000/"
-//let ROOT_URL = "http://192.168.0.17:8000/"
+//let ROOT_URL = "http://127.0.0.1:5000/"
+let ROOT_URL = "http://192.168.0.10:5000/"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -60,20 +60,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         firstSceneDelegate.notificationTracker.deviceTokenString = tokenString
     }
 
-    /* Example Payload
-     {
-         "aps" : {
-            "alert" : {
-                 "title" : "Check out our new special!",
-                 "body" : "Avocado Bacon Burger on sale"
-             },
-             "sound" : "default",
-             "badge" : 1,
-        },
-         "special" : "avocado_bacon_burger",
-         "price" : "9.99"
-     }
-     */
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -93,6 +79,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         // Always call the completion handler when done.
         completionHandler()
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+             willPresent notification: UNNotification,
+             withCompletionHandler completionHandler:
+                @escaping (UNNotificationPresentationOptions) -> Void) {
+        let userInfo = notification.request.content.userInfo
+        
+        guard let gameId = userInfo["game_id"] as? String else {
+            completionHandler(UNNotificationPresentationOptions(rawValue: 0))
+            return
+        }
+        
+        let firstScene = UIApplication.shared.connectedScenes.first
+        guard let firstSceneDelegate : SceneDelegate = (firstScene?.delegate as? SceneDelegate) else {
+            completionHandler(UNNotificationPresentationOptions(rawValue: 0))
+            return
+        }
+        firstSceneDelegate.notificationTracker.refreshGames.insert(gameId)
+
+        // Always call the completion handler when done.
+        completionHandler(UNNotificationPresentationOptions(rawValue: 0))
     }
 
 }
