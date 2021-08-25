@@ -10,14 +10,17 @@
 import SwiftUI
 
 struct RackSquare: View {
+    let number: Int
     let size: Int
     let color: Color
     let index: Int
     @EnvironmentObject var rackSlots: SlotRow
  
     var body: some View {
-        Rectangle()
-            .fill(self.color)
+        ZStack {
+            Rectangle().fill(self.color)
+            Text("\(self.number)").foregroundColor(.clear)
+        }
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .overlay(
                 GeometryReader { geo -> Color in

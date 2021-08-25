@@ -60,6 +60,9 @@ struct PlaySpace: View {
     @State private var prevBlankRow: Int? = nil
     @State private var prevBlankColumn: Int? = nil
     
+    // Dumb hack to try to redraw the board/rack squares and re-process the geometry
+    @State private var slotNumber = 0
+    
     // Variables for the exchange picker.
     @State private var showExchangePicker = false
     @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
@@ -105,14 +108,22 @@ struct PlaySpace: View {
         }
         .navigationBarTitle("Game", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading: backToMenu)
+        .navigationBarItems(leading: backToMenu, trailing: Button(action: {
+            self.getGameState()
+            self.slotNumber += 1
+        }) {
+            Text("Refresh")
+        })
         .onAppear() {
             self.getGameState()
         }
         .onChange(of: notificationTracker.refreshGames) { gamesToRefresh in
             if gamesToRefresh.contains(self.gameId) {
-                self.getGameState()
                 notificationTracker.refreshGames.remove(self.gameId)
+                self.getGameState()
+                DispatchQueue.main.async {
+                    self.slotNumber += 1
+                }
             }
         }
     }
@@ -505,7 +516,7 @@ struct PlaySpace: View {
         for row in 0..<self.numBoardRows {
             var boardSquareRow: [BoardSquare] = []
             for column in 0..<self.numBoardColumns {
-                boardSquareRow.append(BoardSquare(size: boardSquareSize, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
+                boardSquareRow.append(BoardSquare(number: self.slotNumber, size: boardSquareSize, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
             }
             boardSquares.append(boardSquareRow)
         }
@@ -560,7 +571,7 @@ struct PlaySpace: View {
         var rackSquares: [RackSquare] = []
         let rackSquareSize = self.getRackSquareSize()
         for index in 0..<NUM_RACK_TILES {
-            rackSquares.append(RackSquare(size: rackSquareSize, color: Color.clear, index: index))
+            rackSquares.append(RackSquare(number: self.slotNumber, size: rackSquareSize, color: Color.clear, index: index))
         }
         return rackSquares
     }
@@ -591,6 +602,7 @@ struct PlaySpace: View {
                             self.locked[playedTile.row][playedTile.column] = true
                         }
                         self.clearRack()
+                        self.slotNumber += 1
                         var rackIndex = 0
                         for tileCountIndex in 0..<gameState.rack.count {
                             let tileCount = gameState.rack[tileCountIndex]

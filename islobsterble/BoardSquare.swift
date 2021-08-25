@@ -17,6 +17,7 @@ let DOUBLE_LETTER_COLOR = Color(red: 70 / 255, green: 130 / 255, blue: 210 / 255
 
 struct BoardSquare: View {
     
+    let number: Int
     let size: Int
     let letterMultiplier: Int
     let wordMultiplier: Int
@@ -30,6 +31,7 @@ struct BoardSquare: View {
             Rectangle()
                 .fill(self.getSquareColor())
                 .border(Color.black)
+            Text("\(self.number)").foregroundColor(.clear)
         }
         .frame(width: CGFloat(size), height: CGFloat(size))
         .overlay(
