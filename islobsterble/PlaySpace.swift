@@ -52,6 +52,8 @@ struct PlaySpace: View {
     @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     @State private var rackShuffleState: [Letter] = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
     
+    @State private var prevMove: PrevMoveSerializer?
+    
     // Variables for managing Z-positioning of dragged tiles.
     @State private var frontTaker: FrontTaker = FrontTaker.unknown
     
@@ -77,7 +79,7 @@ struct PlaySpace: View {
     var body: some View {
         ZStack {
             VStack {
-                ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber)
+                ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber, prevMove: self.prevMove)
                 Spacer()
                 ZStack {
                     VStack(spacing: 20) {
@@ -624,6 +626,7 @@ struct PlaySpace: View {
                             return $0.turnOrder < $1.turnOrder
                         }
                         self.turnNumber = gameState.turn_number
+                        self.prevMove = gameState.prev_move
                     }
                 }
             } else {
@@ -696,6 +699,7 @@ struct GameSerializer: Codable {
     let whose_turn_name: String
     let num_tiles_remaining: Int
     let rack: [TileCountSerializer]
+    let prev_move: PrevMoveSerializer?
 }
 struct PlayedTileSerializer: Codable {
     let tile: TileSerializer
@@ -733,4 +737,11 @@ struct PositionedModifierSerializer: Codable {
 struct ModifierSerializer: Codable {
     let word_multiplier: Int
     let letter_multiplier: Int
+}
+struct PrevMoveSerializer: Codable {
+    let word: String?
+    let score: Int
+    let player_id: Int
+    let display_name: String
+    let exchanged_count: Int
 }

@@ -97,6 +97,12 @@ struct GameManagementView: View {
                                 self.completedGames.append(game)
                             }
                         }
+                        self.activeGames.sort {
+                            $0.started > $1.started
+                        }
+                        self.completedGames.sort {
+                            $0.completed! > $1.completed!
+                        }
                     } else {
                         self.errorMessage = "Internal error decoding game management view data."
                     }

@@ -9,6 +9,9 @@
 
 import SwiftUI
 
+//let TILE_COLOR = Color(red: 255 / 255, green: 249 / 255, blue: 208 / 255)
+let TILE_COLOR = Color(.yellow)
+
 struct Tile: View {
     @State private var dragAmount = CGSize.zero
     @State private var dragState = Position(boardRow: nil, boardColumn: nil, rackIndex: nil)
@@ -30,7 +33,7 @@ struct Tile: View {
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .background(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(self.face == INVISIBLE_LETTER ? Color(.clear) : Color(.yellow))
+                    .fill(self.face == INVISIBLE_LETTER ? Color(.clear) : TILE_COLOR)
             )
             .offset(self.dragAmount)
             .zIndex(self.dragAmount == .zero ? 0 : 1)

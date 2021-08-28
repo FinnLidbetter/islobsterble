@@ -15,6 +15,7 @@ let CURRENT_PLAYER_COLOR = Color(red: 70 / 255, green: 130 / 255, blue: 210 / 25
 struct ScorePanel: View {
     let playerScores: [PlayerScore]
     let turnNumber: Int
+    let prevMove: PrevMoveSerializer?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +27,20 @@ struct ScorePanel: View {
                 }
             }.padding(10).background(Rectangle().fill(SCORE_PANEL_COLOR))
             Rectangle().fill(Color.black).frame(minWidth: 0, idealWidth: .infinity, maxWidth: .infinity, minHeight: 1, idealHeight: 2, maxHeight: 2, alignment: .center)
+            Text(self.prevMoveString()).padding()
         }
+    }
+    func prevMoveString() -> String {
+        if self.prevMove == nil {
+            return ""
+        }
+        if self.prevMove!.word != nil {
+            return "\(self.prevMove!.display_name) played \(self.prevMove!.word!) for \(self.prevMove!.score) points."
+        }
+        if self.prevMove!.exchanged_count == 0 {
+            return "\(self.prevMove!.display_name) passed their turn."
+        }
+        return "\(self.prevMove!.display_name) exchanged \(self.prevMove!.exchanged_count) tiles."
     }
 }
 
