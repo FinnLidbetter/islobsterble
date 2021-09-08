@@ -10,7 +10,7 @@ import UIKit
 import SwiftUI
 
 //let ROOT_URL = "http://127.0.0.1:5000/"
-let ROOT_URL = "http://192.168.0.10:5000/"
+let ROOT_URL = "https://slobsterble.finnlidbetter.com/"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -20,6 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Override point for customization after application launch.
         UIApplication.shared.registerForRemoteNotifications()
         UNUserNotificationCenter.current().delegate = self
+        UIApplication.shared.applicationIconBadgeNumber = 0
         return true
     }
 
