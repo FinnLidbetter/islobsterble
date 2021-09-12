@@ -68,7 +68,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		E703D7B32579CDDF006C7731 /* islobsterble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = islobsterble.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E703D7B32579CDDF006C7731 /* ReRack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReRack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E703D7B62579CDDF006C7731 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E703D7B82579CDDF006C7731 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		E703D7BA2579CDDF006C7731 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -156,7 +156,7 @@
 		E703D7B42579CDDF006C7731 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E703D7B32579CDDF006C7731 /* islobsterble.app */,
+				E703D7B32579CDDF006C7731 /* ReRack.app */,
 				E703D7C92579CDE3006C7731 /* islobsterbleTests.xctest */,
 				E703D7D42579CDE3006C7731 /* islobsterbleUITests.xctest */,
 			);
@@ -254,7 +254,7 @@
 			);
 			name = islobsterble;
 			productName = islobsterble;
-			productReference = E703D7B32579CDDF006C7731 /* islobsterble.app */;
+			productReference = E703D7B32579CDDF006C7731 /* ReRack.app */;
 			productType = "com.apple.product-type.application";
 		};
 		E703D7C82579CDE3006C7731 /* islobsterbleTests */ = {
@@ -582,7 +582,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = FinnLidbetter.islobsterble;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = ReRack;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -604,7 +604,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = FinnLidbetter.islobsterble;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = ReRack;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

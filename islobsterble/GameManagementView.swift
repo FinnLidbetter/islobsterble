@@ -259,7 +259,7 @@ struct GameInfo: Codable {
             }
         }
         if completed == nil {
-            return "\(self.whose_turn_name)'s turn."
+            return "\(self.whose_turn_name)'s turn"
         } else {
             if tie {
                 return "It was a draw!"

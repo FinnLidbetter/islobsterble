@@ -20,10 +20,10 @@ struct ScorePanel: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(self.playerScores.count > 0 ? "\(self.playerScores[0].playerName): \(self.playerScores[0].score)" : "").padding(10).background(Rectangle().fill(self.playerScores.count > 0 && self.turnNumber % self.playerScores.count == self.playerScores[0].turnOrder ? CURRENT_PLAYER_COLOR : Color(.clear)))
+                Text(self.playerScores.count > 0 ? "\(self.playerScores[0].playerName): \(self.playerScores[0].score)" : "").padding(10).background(self.playerScores.count > 0 && self.turnNumber % self.playerScores.count == self.playerScores[0].turnOrder ? CURRENT_PLAYER_COLOR : Color(.clear)).cornerRadius(10)
                 ForEach(min(self.playerScores.count, 1)..<self.playerScores.count, id: \.self) { index in
                     Spacer()
-                    Text("\(self.playerScores[index].playerName): \(self.playerScores[index].score)").padding(10).background(Rectangle().fill(self.turnNumber % self.playerScores.count == self.playerScores[index].turnOrder ? CURRENT_PLAYER_COLOR : Color(.clear)))
+                    Text("\(self.playerScores[index].playerName): \(self.playerScores[index].score)").padding(10).background(self.turnNumber % self.playerScores.count == self.playerScores[index].turnOrder ? CURRENT_PLAYER_COLOR : Color(.clear)).cornerRadius(10)
                 }
             }.padding(10).background(Rectangle().fill(SCORE_PANEL_COLOR))
             Rectangle().fill(Color.black).frame(minWidth: 0, idealWidth: .infinity, maxWidth: .infinity, minHeight: 1, idealHeight: 2, maxHeight: 2, alignment: .center)
