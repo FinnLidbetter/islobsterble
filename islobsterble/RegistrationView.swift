@@ -20,43 +20,45 @@ struct RegistrationView: View {
     
     var body: some View {
         ZStack {
-            VStack {
-                Group {
-                    Text("Display Name")
-                    TextField("Display Name", text: $displayName)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.leading, 18)
-                        .padding(.trailing, 18)
-                        .padding(.bottom, 40)
-                    Text("Username")
-                    TextField("Username", text: $username)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.leading, 18)
-                        .padding(.trailing, 18)
-                        .padding(.bottom, 40)
-                    Text("Password")
-                    SecureField("Password", text: $password)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.leading, 18)
-                        .padding(.trailing, 18)
-                    Text(self.password == self.confirmPassword ? "" : "Passwords do not match.")
-                    Text("Confirm Password")
-                    SecureField("Confirm Password", text: $confirmPassword)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.leading, 18)
-                        .padding(.trailing, 18)
-                }
-                Button(action: self.register) {
-                    Text("Register")
-                }
-                .padding(18)
-                .disabled(self.password != self.confirmPassword || self.username == "" || self.displayName == "")
-                Text(self.message)
-            }.navigationBarTitle("Register", displayMode: .inline)
+            ScrollView {
+                VStack {
+                    Group {
+                        Text("Display Name")
+                        TextField("Display Name", text: $displayName)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading, 18)
+                            .padding(.trailing, 18)
+                            .padding(.bottom, 40)
+                        Text("Username")
+                        TextField("Username", text: $username)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading, 18)
+                            .padding(.trailing, 18)
+                            .padding(.bottom, 40)
+                        Text("Password")
+                        SecureField("Password", text: $password)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading, 18)
+                            .padding(.trailing, 18)
+                        Text(self.password == self.confirmPassword ? "" : "Passwords do not match.")
+                        Text("Confirm Password")
+                        SecureField("Confirm Password", text: $confirmPassword)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading, 18)
+                            .padding(.trailing, 18)
+                    }
+                    Button(action: self.register) {
+                        Text("Register")
+                    }
+                    .padding(18)
+                    .disabled(self.password != self.confirmPassword || self.username == "" || self.displayName == "")
+                    Text(self.message)
+                }.navigationBarTitle("Register", displayMode: .inline)
+            }
             ErrorView(errorMessage: self.$errorMessage)
         }
     }
