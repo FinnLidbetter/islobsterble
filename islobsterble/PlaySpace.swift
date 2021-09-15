@@ -17,6 +17,7 @@ let INVISIBLE_LETTER = Letter(letter: INVISIBLE, is_blank: false)
 let NUM_RACK_TILES = 7
 let DEFAULT_ROWS = 15
 let DEFAULT_COLUMNS = 15
+let BINGO_BONUS = 50
 
 enum FrontTaker {
     /*
@@ -79,7 +80,8 @@ struct PlaySpace: View {
     var body: some View {
         ZStack {
             VStack {
-                ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber, prevMove: self.prevMove)
+                ScorePanel(playerScores: self.playerScores, turnNumber: self.turnNumber, prevMove: self.prevMove, boardScore:
+                            ScoreComputer(boardLetters: self.boardLetters, locked: self.locked, letterMultipliers: self.letterMultipliers, wordMultipliers: self.wordMultipliers).computeScore())
                 Spacer()
                 ZStack {
                     VStack(spacing: 20) {
@@ -104,7 +106,7 @@ struct PlaySpace: View {
                     onPass: self.confirmPass,
                     onPlay: self.confirmPlay,
                     onExchange: self.selectExchange
-                ).padding()
+                ).padding(10)
             }
             ErrorView(errorMessage: self.$errorMessage)
         }
