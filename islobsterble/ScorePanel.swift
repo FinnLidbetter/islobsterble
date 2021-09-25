@@ -31,7 +31,7 @@ struct ScorePanel: View {
             HStack {
                 Text(self.prevMoveString()).padding()
                 Spacer()
-                Text(self.boardScore == nil ? "??" : "\(self.boardScore!)").frame(width: 40, height: 40, alignment: .center).border(DOUBLE_LETTER_COLOR, width: 3).padding(10)
+                Text(self.boardScore == nil ? "??" : "\(self.boardScore!)").frame(width: 40, height: 40, alignment: .center).border(DOUBLE_LETTER_COLOR, width: 3).padding(.trailing, 10)
             }
         }
     }

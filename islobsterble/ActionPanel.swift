@@ -13,6 +13,7 @@ struct ActionPanel: View {
     @Binding var loggedIn: Bool
     @Binding var inGame: Bool
     let gameId: String
+    let tilesRemaining: Int
     let rackTilesOnBoard: Bool
     let showingPicker: Bool
     
@@ -27,30 +28,72 @@ struct ActionPanel: View {
         HStack {
             // Move history
             NavigationLink(destination: MoveHistoryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
-                //Image("MoveHistoryIcon").renderingMode(.original)
-                Text("History")
+                VStack {
+                    MoveHistoryIcon().stroke(lineWidth: 2.0).frame(width: 31, height: 31)
+                    Text("Scores").font(.system(size: 12.0))
+                }.frame(width: 60, height: 50)
             }.isDetailLink(false)
+            Spacer()
             // Dictionary
             NavigationLink(destination: DictionaryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
-                //Image("DictionaryIcon").renderingMode(.original)
-                Text("Dict.")
+                VStack {
+                    Image(systemName: "character.book.closed").font(.system(size: 35.0))
+                    Text("Dictionary").font(.system(size: 11.0))
+                }.frame(width: 60, height: 50)
             }.isDetailLink(false)
+            Spacer()
             // Exchange
             Button(action: self.onExchange) {
-                //Image("ExchangeIcon")
-                Text("Exchange")
+                ZStack {
+                    VStack {
+                        Image(systemName: "bag").font(.system(size: 35.0))
+                        Text("Exchange").font(.system(size: 12.0))
+                    }
+                    Text("\(self.tilesRemaining)").font(.system(size: 12.0)).padding(.bottom, 5)
+                }.frame(width: 60, height: 50)
             }
+            Spacer()
             // Shuffle/recall
             Button(action: self.rackTilesOnBoard ? self.onRecall : self.onShuffle) {
-                //Image(self.rackTilesOneBoard ? "RecallIcon" : "ShuffleIcon").renderingMode(.original)
-                Text(self.rackTilesOnBoard ? "Recall" : "Shuffle")
+                VStack {
+                    if self.rackTilesOnBoard {
+                        Image(systemName: "arrow.down").font(.system(size: 30.0))
+                    } else {
+                        Image(systemName: "arrow.left.arrow.right").font(.system(size: 30.0))
+                    }
+                    Text(self.rackTilesOnBoard ? "Recall" : "Shuffle").font(.system(size: 12.0))
+                }.frame(width: 60, height: 50)
             }
+            Spacer()
             // Pass/play
             Button(action: self.rackTilesOnBoard ? self.onPlay : self.onPass) {
-                //Image(self.rackTilesOnBoard ? "PlayIcon" : "PassIcon").renderingMode(.original)
-                Text(self.rackTilesOnBoard ? "Play" : "Pass")
+                VStack {
+                    if self.rackTilesOnBoard {
+                        Image(systemName: "arrowtriangle.forward").font(.system(size: 35.0))
+                    } else {
+                        Image(systemName: "arrow.right.to.line").font(.system(size: 35.0))
+                    }
+                    //Image(systemName: self.rackTilesOnBoard ? "arrowtriangle.forward" : "arrow.right.to.line").font(.system(size: 35.0))
+                    Text(self.rackTilesOnBoard ? "Play" : "Pass").font(.system(size: 12.0))
+                }.frame(width: 60, height: 50)
             }
         }.allowsHitTesting(!self.showingPicker)
     }
     
+}
+struct MoveHistoryIcon: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX - 1.0, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY - 1.0))
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.height / 5.0))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + rect.height / 5.0))
+       
+        return path
+    }
 }

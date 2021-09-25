@@ -48,6 +48,7 @@ struct PlaySpace: View {
     @State private var locked = [[Bool]](repeating: [Bool](repeating: false, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var letterMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var wordMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
+    @State private var numTilesRemaining = 86
     
     @State private var rackTilesOnBoardCount: Int = 0
     @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
@@ -99,6 +100,7 @@ struct PlaySpace: View {
                     loggedIn: self.$loggedIn,
                     inGame: self.$loggedIn,
                     gameId: self.gameId,
+                    tilesRemaining: self.numTilesRemaining,
                     rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
                     showingPicker: self.showBlankPicker || self.showExchangePicker,
                     onShuffle: self.shuffleTiles,
@@ -106,7 +108,7 @@ struct PlaySpace: View {
                     onPass: self.confirmPass,
                     onPlay: self.confirmPlay,
                     onExchange: self.selectExchange
-                ).padding(10)
+                ).padding(.bottom, 10)
             }
             ErrorView(errorMessage: self.$errorMessage)
         }
@@ -116,7 +118,7 @@ struct PlaySpace: View {
             self.getGameState()
             self.slotNumber += 1
         }) {
-            Text("Refresh")
+            Image(systemName: "arrow.clockwise").font(.system(size: 25.0))
         })
         .onAppear() {
             self.getGameState()
@@ -629,6 +631,7 @@ struct PlaySpace: View {
                         }
                         self.turnNumber = gameState.turn_number
                         self.prevMove = gameState.prev_move
+                        self.numTilesRemaining = gameState.num_tiles_remaining
                     }
                 }
             } else {

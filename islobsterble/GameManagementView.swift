@@ -191,23 +191,31 @@ struct MenuItems: View {
     var body: some View {
         HStack {
             NavigationLink(destination: SettingsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                // Image("SettingsIcon").renderingMode(.original)
-                Text("Settings")
+                VStack {
+                    Image(systemName: "gearshape").font(.system(size: 25.0))
+                    Text("Settings").font(.system(size: 14.0))
+                }
             }.isDetailLink(false)
             Spacer()
             NavigationLink(destination: StatsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                // Image("StatsIcon").renderingMode(.original)
-                Text("Stats")
+                VStack {
+                    Image(systemName: "chart.bar.xaxis").font(.system(size: 28.0))
+                    Text("Stats").font(.system(size: 14.0))
+                }
             }.isDetailLink(false)
             Spacer()
             NavigationLink(destination: FriendsView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                // Image("ContactsIcon").renderingMode(.original)
-                Text("Friends")
+                VStack {
+                    Image(systemName: "person.3").font(.system(size: 25.0))
+                    Text("Friends").font(.system(size: 14.0))
+                }
             }.isDetailLink(false)
             Spacer()
             NavigationLink(destination: NewGameView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
-                // Image("NewGameIcon").renderingMode(.original)
-                Text("New Game")
+                VStack {
+                    Image(systemName: "plus").font(.system(size: 25.0))
+                    Text("New Game").font(.system(size: 14.0))
+                }
             }.isDetailLink(false)
         }
         .padding(.top, 10)
