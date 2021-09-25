@@ -155,6 +155,7 @@ struct GameManagementView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
+                    let _ = KeyChain.delete(location: REFRESH_TAG)
                     self.loggedIn = false
                 } else {
                     self.errorMessage = "Unexpected internal logout error."

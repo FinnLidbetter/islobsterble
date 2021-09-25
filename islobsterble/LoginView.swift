@@ -52,6 +52,8 @@ struct LoginView: View {
             }
             .navigationBarTitle("Login", displayMode: .inline)
             .navigationBarItems(trailing: registerButton)
+        }.onAppear {
+            checkSavedCredentials()
         }
     }
     
@@ -103,6 +105,19 @@ struct LoginView: View {
                 self.failureMessage = CONNECTION_ERROR_STR
             }
         }.resume()
+    }
+
+    func checkSavedCredentials() {
+        guard let receivedData = KeyChain.load(location: REFRESH_TAG) else {
+            return
+        }
+        let refreshTokenString = String(decoding: receivedData, as: UTF8.self)
+        let refreshToken = Token(keyChainString: refreshTokenString)
+        if refreshToken.isExpired() {
+            return
+        }
+        self.failureMessage = ""
+        self.loggedIn = true
     }
 }
 

@@ -114,6 +114,10 @@ struct Token: Codable {
     func toHttpHeaderString() -> String {
         return "Bearer " + self.token
     }
+    func isExpired() -> Bool {
+        let now = Date()
+        return now.addingTimeInterval(renewAccessBufferTime) > self.expiration_date
+    }
 }
 
 struct TokenPair: Decodable {
