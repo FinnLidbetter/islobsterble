@@ -33,7 +33,7 @@ struct ActionPanel: View {
             // Dictionary
             NavigationLink(destination: DictionaryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
                 //Image("DictionaryIcon").renderingMode(.original)
-                Text("Dictionary")
+                Text("Dict.")
             }.isDetailLink(false)
             // Exchange
             Button(action: self.onExchange) {

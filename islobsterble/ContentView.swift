@@ -14,7 +14,7 @@ struct ContentView: View {
     @ObservedObject var accessToken: ManagedAccessToken = ManagedAccessToken()
     
     var body: some View {
-        LoginView().environmentObject(accessToken)
+        LoginView().environmentObject(accessToken).environment(\.sizeCategory, .large)
     }
 }
 
