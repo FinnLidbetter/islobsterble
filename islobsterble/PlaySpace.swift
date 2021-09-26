@@ -632,6 +632,35 @@ struct PlaySpace: View {
                         self.turnNumber = gameState.turn_number
                         self.prevMove = gameState.prev_move
                         self.numTilesRemaining = gameState.num_tiles_remaining
+                        if gameState.num_tiles_remaining == 0 {
+                            var message = ""
+                            var gameOver = false
+                            var highestScore = 0
+                            var highestScorers: [String] = []
+                            for gamePlayerIndex in 0..<gameState.game_players.count {
+                                let gamePlayer = gameState.game_players[gamePlayerIndex]
+                                if gamePlayer.num_tiles_remaining == 0 {
+                                    gameOver = true
+                                }
+                                if gamePlayer.player.id != gameState.fetcher_player_id {
+                                    message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tiles left. "
+                                }
+                                if gamePlayer.score > highestScore {
+                                    highestScore = gamePlayer.score
+                                    highestScorers = [gamePlayer.player.display_name]
+                                } else if gamePlayer.score == highestScore {
+                                    highestScorers.append(gamePlayer.player.display_name)
+                                }
+                            }
+                            if gameOver {
+                                if highestScorers.count == 1 {
+                                    message = "Game over. \(highestScorers[0]) has won!"
+                                } else {
+                                    message = "Game over. It was a draw!"
+                                }
+                            }
+                            self.errorMessage = message
+                        }
                     }
                 }
             } else {
@@ -705,6 +734,7 @@ struct GameSerializer: Codable {
     let num_tiles_remaining: Int
     let rack: [TileCountSerializer]
     let prev_move: PrevMoveSerializer?
+    let fetcher_player_id: Int
 }
 struct PlayedTileSerializer: Codable {
     let tile: TileSerializer
@@ -724,6 +754,7 @@ struct GamePlayerSerializer: Codable {
     let score: Int
     let turn_order: Int
     let player: PlayerSerializer
+    let num_tiles_remaining: Int
 }
 struct PlayerSerializer: Codable {
     let display_name: String
