@@ -11,9 +11,9 @@ import SwiftUI
 
 let BOARD_COLOR = Color(red: 155 / 255, green: 250 / 255, blue: 255 / 255)
 let TRIPLE_WORD_COLOR = Color(red: 245 / 255, green: 39 / 255, blue: 39 / 255)
-let DOUBLE_WORD_COLOR = Color(red: 245 / 255, green: 131 / 255, blue: 131 / 255)
+let DOUBLE_WORD_COLOR = Color(red: 255 / 255, green: 133 / 255, blue: 177 / 255)
 let TRIPLE_LETTER_COLOR = Color(red: 50 / 255, green: 70 / 255, blue: 170 / 255)
-let DOUBLE_LETTER_COLOR = Color(red: 70 / 255, green: 130 / 255, blue: 210 / 255)
+let DOUBLE_LETTER_COLOR = Color(red: 31 / 255, green: 188 / 255, blue: 255 / 255)
 
 struct BoardSquare: View {
     
