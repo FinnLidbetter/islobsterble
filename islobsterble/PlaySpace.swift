@@ -137,7 +137,7 @@ struct PlaySpace: View {
     var backToMenu: some View {
         Button(action: { self.inGame = false }) {
             HStack {
-                Image("back_arrow").aspectRatio(contentMode: .fit)
+                Image(systemName: "chevron.left").aspectRatio(contentMode: .fit)
                 Text("Menu")
             }
         }

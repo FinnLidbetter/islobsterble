@@ -135,7 +135,7 @@ struct GameManagementView: View {
     var logoutButton: some View {
         Button(action: { self.logout() }) {
             HStack {
-                Image("back_arrow").aspectRatio(contentMode: .fit)
+                Image(systemName: "chevron.left").aspectRatio(contentMode: .fit)
                 Text("Logout")
             }
         }
