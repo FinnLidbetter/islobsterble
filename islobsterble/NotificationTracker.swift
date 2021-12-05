@@ -7,8 +7,14 @@
 //
 
 import Foundation
+import SwiftUI
 
 class NotificationTracker: ObservableObject {
     @Published var deviceTokenString: String? = nil
     @Published var refreshGames: Set<String> = []
+    @Published var refreshCurrentGame = false
+    
+    func setRefreshCurrentGame(value: Bool) {
+        self.refreshCurrentGame = value
+    }
 }
