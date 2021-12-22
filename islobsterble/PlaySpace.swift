@@ -49,6 +49,7 @@ struct PlaySpace: View {
     @State private var letterMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var wordMultipliers = [[Int]](repeating: [Int](repeating: 1, count: DEFAULT_COLUMNS), count: DEFAULT_ROWS)
     @State private var numTilesRemaining = 86
+    @State private var gameOver = false
     
     @State private var rackTilesOnBoardCount: Int = 0
     @State private var rackLetters = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
@@ -497,7 +498,9 @@ struct PlaySpace: View {
             }
         }
         self.rackShuffleState = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
-        self.persistRackState()
+        if !self.gameOver {
+            self.persistRackState()
+        }
     }
     
     private func getBoardSquareSize() -> Int {
@@ -538,20 +541,6 @@ struct PlaySpace: View {
             boardSquares.append(boardSquareRow)
         }
         return boardSquares
-    }
-    
-    func getBoardColors() -> [[Color]] {
-        var colors = Array(repeating: Array(repeating: Color.gray, count: 15), count: 15)
-        colors[0][0] = Color.red
-        colors[0][7] = Color.red
-        colors[0][14] = Color.red
-        colors[7][0] = Color.red
-        colors[7][7] = Color.orange
-        colors[7][14] = Color.red
-        colors[14][0] = Color.red
-        colors[14][7] = Color.red
-        colors[14][14] = Color.red
-        return colors
     }
     
     private func setupRackTiles() -> [Tile] {
@@ -649,13 +638,12 @@ struct PlaySpace: View {
                         self.numTilesRemaining = gameState.num_tiles_remaining
                         if gameState.num_tiles_remaining == 0 {
                             var message = ""
-                            var gameOver = false
                             var highestScore = 0
                             var highestScorers: [String] = []
                             for gamePlayerIndex in 0..<gameState.game_players.count {
                                 let gamePlayer = gameState.game_players[gamePlayerIndex]
                                 if gamePlayer.num_tiles_remaining == 0 {
-                                    gameOver = true
+                                    self.gameOver = true
                                 }
                                 if gamePlayer.player.id != gameState.fetcher_player_id {
                                     message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tiles left. "
@@ -667,7 +655,8 @@ struct PlaySpace: View {
                                     highestScorers.append(gamePlayer.player.display_name)
                                 }
                             }
-                            if gameOver {
+                            if self.gameOver {
+                                self.clearPersistedRackState()
                                 if highestScorers.count == 1 {
                                     message = "Game over. \(highestScorers[0]) has won!"
                                 } else {
@@ -730,6 +719,9 @@ struct PlaySpace: View {
             return loadedRackState
         }
         return []
+    }
+    private func clearPersistedRackState() {
+        UserDefaults.standard.removeObject(forKey: "slobsterble:\(self.gameId):rack")
     }
     private func countLetters(letters: [Letter]) -> [Letter: Int] {
         var counts: [Letter: Int] = [:]
