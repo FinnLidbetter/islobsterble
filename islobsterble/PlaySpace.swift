@@ -13,7 +13,7 @@ let SCREEN_SIZE: CGRect = UIScreen.main.bounds
 
 let BLANK = Character("-")
 let INVISIBLE = Character(" ")
-let INVISIBLE_LETTER = Letter(letter: INVISIBLE, is_blank: false)
+let INVISIBLE_LETTER = Letter(letter: INVISIBLE, is_blank: false, value: nil)
 let NUM_RACK_TILES = 7
 let DEFAULT_ROWS = 15
 let DEFAULT_COLUMNS = 15
@@ -497,6 +497,7 @@ struct PlaySpace: View {
             }
         }
         self.rackShuffleState = [Letter](repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
+        self.persistRackState()
     }
     
     private func getBoardSquareSize() -> Int {
@@ -628,6 +629,10 @@ struct PlaySpace: View {
                                 rackIndex += 1
                             }
                         }
+                        let savedRackState = self.retrieveRackState()
+                        if self.equalTileCounts(letters_1: self.rackLetters, letters_2: savedRackState) {
+                            self.rackLetters = savedRackState
+                        }
                         self.playerScores = []
                         for gamePlayerIndex in 0..<gameState.game_players.count {
                             self.playerScores.append(
@@ -710,6 +715,47 @@ struct PlaySpace: View {
     private func clearRack() {
         self.rackLetters = Array(repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
         self.rackShuffleState = Array(repeating: INVISIBLE_LETTER, count: NUM_RACK_TILES)
+    }
+    
+    private func persistRackState() {
+        if self.rackTilesOnBoardCount == 0 {
+            if let encoded = try? JSONEncoder().encode(self.rackLetters) {
+                let defaults = UserDefaults.standard
+                defaults.set(encoded, forKey: "slobsterble:\(self.gameId):rack")
+            }
+        }
+    }
+    private func retrieveRackState() -> [Letter] {
+        if let savedRackState = UserDefaults.standard.object(forKey: "slobsterble:\(self.gameId):rack") as? Data, let loadedRackState = try? JSONDecoder().decode([Letter].self, from: savedRackState) {
+            return loadedRackState
+        }
+        return []
+    }
+    private func countLetters(letters: [Letter]) -> [Letter: Int] {
+        var counts: [Letter: Int] = [:]
+        for letter in letters {
+            if counts.keys.contains(letter) {
+                counts[letter] = counts[letter]! + 1
+            } else {
+                counts[letter] = 0
+            }
+        }
+        return counts
+    }
+    private func equalTileCounts(letters_1: [Letter], letters_2: [Letter]) -> Bool {
+        let counts_1 = self.countLetters(letters: letters_1)
+        let counts_2 = self.countLetters(letters: letters_2)
+        for letter in counts_1.keys {
+            if counts_1[letter] != counts_2[letter] {
+                return false
+            }
+        }
+        for letter in counts_2.keys {
+            if counts_1[letter] != counts_2[letter] {
+                return false
+            }
+        }
+        return true
     }
 }
 
