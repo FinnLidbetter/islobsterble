@@ -22,7 +22,7 @@ struct GameManagementView: View {
     var body: some View {
         ZStack {
             VStack {
-                MenuItems(loggedIn: self.$loggedIn).environmentObject(self.accessToken)
+                MenuItems(loggedIn: self.$loggedIn, inGame: self.$inGame, selectedGameId: self.$selectedGameId).environmentObject(self.accessToken)
                 VStack {
                     if self.selectedGameId != nil {
                         NavigationLink(destination: PlaySpace(gameId: self.selectedGameId!, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken), isActive: self.$inGame) {
@@ -186,6 +186,8 @@ struct GameManagementView: View {
 }
 struct MenuItems: View {
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
+    @Binding var selectedGameId: String?
     @EnvironmentObject var accessToken: ManagedAccessToken
     
     var body: some View {
@@ -211,7 +213,7 @@ struct MenuItems: View {
                 }
             }.isDetailLink(false)
             Spacer()
-            NavigationLink(destination: NewGameView(loggedIn: self.$loggedIn).environmentObject(self.accessToken)) {
+            NavigationLink(destination: NewGameView(loggedIn: self.$loggedIn, inGame: self.$inGame, selectedGameId: self.$selectedGameId).environmentObject(self.accessToken)) {
                 VStack {
                     Image(systemName: "plus").font(.system(size: 25.0))
                     Text("New Game").font(.system(size: 14.0))

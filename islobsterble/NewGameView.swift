@@ -13,6 +13,8 @@ let OPPONENTS_MAX = 3
 
 struct NewGameView: View {
     @Binding var loggedIn: Bool
+    @Binding var inGame: Bool
+    @Binding var selectedGameId: String?
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
@@ -104,6 +106,9 @@ struct NewGameView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
+                    let newGameId = String(decoding: data, as: UTF8.self)
+                    self.selectedGameId = newGameId
+                    self.inGame = true
                     self.chosenOpponents = Set([])
                 } else {
                     self.errorMessage = String(decoding: data, as: UTF8.self)
