@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B652A9ED26F02F850079C0D8 /* ScoreComputer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */; };
+		B6C1D1AF284D404E003ED747 /* PassConfirmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */; };
 		E703D7B72579CDDF006C7731 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7B62579CDDF006C7731 /* AppDelegate.swift */; };
 		E703D7B92579CDDF006C7731 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7B82579CDDF006C7731 /* SceneDelegate.swift */; };
 		E703D7BB2579CDDF006C7731 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7BA2579CDDF006C7731 /* ContentView.swift */; };
@@ -70,6 +71,7 @@
 
 /* Begin PBXFileReference section */
 		B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreComputer.swift; sourceTree = "<group>"; };
+		B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassConfirmer.swift; sourceTree = "<group>"; };
 		E703D7B32579CDDF006C7731 /* ReRack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReRack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E703D7B62579CDDF006C7731 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E703D7B82579CDDF006C7731 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 				E7848EC725978A0800817736 /* ActionPanel.swift */,
 				E7848EC92597ADEB00817736 /* DictionaryView.swift */,
 				E7848ECD2597E6AF00817736 /* ExchangePicker.swift */,
+				B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */,
 				E7848ECB2597DC8600817736 /* UtilityFuncs.swift */,
 				E7848ECF2598113400817736 /* ScorePanel.swift */,
 				E7E7888125AE8EB8000042D9 /* MoveHistoryView.swift */,
@@ -385,6 +388,7 @@
 				E703D7B72579CDDF006C7731 /* AppDelegate.swift in Sources */,
 				E7848ED22598F3F900817736 /* LoginView.swift in Sources */,
 				E7848EC825978A0800817736 /* ActionPanel.swift in Sources */,
+				B6C1D1AF284D404E003ED747 /* PassConfirmer.swift in Sources */,
 				E7848EBA25963EFC00817736 /* RackForeground.swift in Sources */,
 				E75FB51A26A4C2A9005B326A /* NotificationTracker.swift in Sources */,
 				E7848EDC2599415900817736 /* FriendsView.swift in Sources */,

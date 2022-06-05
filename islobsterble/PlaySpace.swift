@@ -72,6 +72,9 @@ struct PlaySpace: View {
     @State private var showExchangePicker = false
     @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
     
+    // Variables for the pass confirmation dialog.
+    @State private var showPassConfirmer = false
+    
     // Error message
     @State private var errorMessage = ""
     
@@ -91,11 +94,12 @@ struct PlaySpace: View {
                         RackBackground(rackSquares: setupRackSquares()).environmentObject(self.rackSlots)
                     }
                     VStack(spacing: 20) {
-                        BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
-                        RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingPicker: self.showBlankPicker || self.showExchangePicker).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
+                        BoardForeground(tiles: setupBoardTiles(), locked: self.locked, showingPicker: self.showBlankPicker || self.showExchangePicker || self.showPassConfirmer).zIndex(self.frontTaker == FrontTaker.board ? 1 : 0)
+                        RackForeground(tiles: setupRackTiles(), shuffleState: setupShuffleState(), showingPicker: self.showBlankPicker || self.showExchangePicker || self.showPassConfirmer).zIndex(self.frontTaker == FrontTaker.rack ? 1 : 0)
                     }
                     BlankPicker(isPresented: $showBlankPicker, onSelection: self.setBlank)
                     ExchangePicker(isPresented: $showExchangePicker, rackLetters: self.rackLetters, chosen: $exchangeChosen, onSelectTile: self.chooseTileForExchange, onExchange: self.confirmExchange)
+                    PassConfirmer(isPresented: $showPassConfirmer, onPassConfirm: self.confirmPass)
                 }
                 ActionPanel(
                     loggedIn: self.$loggedIn,
@@ -103,10 +107,10 @@ struct PlaySpace: View {
                     gameId: self.gameId,
                     tilesRemaining: self.numTilesRemaining,
                     rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
-                    showingPicker: self.showBlankPicker || self.showExchangePicker,
+                    showingPicker: self.showBlankPicker || self.showExchangePicker || self.showPassConfirmer,
                     onShuffle: self.shuffleTiles,
                     onRecall: self.recallTiles,
-                    onPass: self.confirmPass,
+                    onPass: self.selectPass,
                     onPlay: self.confirmPlay,
                     onExchange: self.selectExchange
                 ).padding(.bottom, 10)
@@ -270,6 +274,10 @@ struct PlaySpace: View {
     private func selectExchange() {
         self.recallTiles()
         self.showExchangePicker = true
+    }
+    
+    private func selectPass() {
+        self.showPassConfirmer = true
     }
     
     private func shuffleTiles() {
