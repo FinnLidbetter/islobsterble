@@ -16,7 +16,8 @@ struct LoginView: View {
     @State private var username: String = ""
     @State private var password: String = ""
     @State private var loggedIn = false
-    @State private var failureMessage = ""
+    @State private var infoMessage = ""
+    @State private var showSendEmailVerification = false
     
     
     var registerButton: some View {
@@ -25,13 +26,19 @@ struct LoginView: View {
         }
     }
     
+    var forgotPasswordButton: some View {
+        NavigationLink(destination: ForgotPasswordView()) {
+            Text("Forgot password?").fontWeight(.regular)
+        }
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
                 Spacer()
                 VStack {
-                    Text("Username")
-                    TextField("Username", text: $username)
+                    Text("Email")
+                    TextField("Email", text: $username)
                         .multilineTextAlignment(.center)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.bottom, 18)
@@ -45,13 +52,15 @@ struct LoginView: View {
                     Button(action: { self.login() }) {
                        Text("Login")
                     }.padding(18)
+                    Button(action: { self.resendVerification() }) {
+                        Text("Re-send Verification Email")
+                    }.allowsHitTesting(self.showSendEmailVerification).opacity(self.showSendEmailVerification ? 1 : 0)
                 }.padding(18)
+                Text(self.infoMessage)
                 Spacer()
-                Text(self.failureMessage)
-
             }
             .navigationBarTitle("Login", displayMode: .inline)
-            .navigationBarItems(trailing: registerButton)
+            .navigationBarItems(leading: forgotPasswordButton, trailing: registerButton)
         }.onAppear {
             checkSavedCredentials()
         }
@@ -89,20 +98,25 @@ struct LoginView: View {
                         
                         let status = KeyChain.save(location: REFRESH_TAG, value: valueToStore)
                         if status == noErr {
+                            self.showSendEmailVerification = false
                             self.loggedIn = true
-                            self.failureMessage = ""
+                            self.infoMessage = ""
                         } else {
                             self.loggedIn = false
-                            self.failureMessage = status.description
+                            self.infoMessage = status.description
                         }
                     } else {
-                        self.failureMessage = "Error decoding token."
+                        self.infoMessage = "Error decoding token."
                     }
                 } else {
-                    self.failureMessage = String(decoding: data, as: UTF8.self)
+                    let error = String(decoding: data, as: UTF8.self)
+                    self.infoMessage = error
+                    if response.statusCode == 401 && error == "Account is not verified" {
+                        self.showSendEmailVerification = true
+                    }
                 }
             } else {
-                self.failureMessage = CONNECTION_ERROR_STR
+                self.infoMessage = CONNECTION_ERROR_STR
             }
         }.resume()
     }
@@ -116,8 +130,34 @@ struct LoginView: View {
         if refreshToken.isExpired() {
             return
         }
-        self.failureMessage = ""
+        self.infoMessage = ""
         self.loggedIn = true
+    }
+    
+    func resendVerification() {
+        guard let url = URL(string: ROOT_URL + "api/send-verification-email") else {
+            return
+        }
+        let verificationData = VerificationData(username: self.username)
+        guard let encodedVerificationData = try? JSONEncoder().encode(verificationData) else {
+            return
+        }
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = encodedVerificationData
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    self.infoMessage = "Verification email sent."
+                } else {
+                    let error = String(decoding: data, as: UTF8.self)
+                    self.infoMessage = error
+                }
+            } else {
+                self.infoMessage = CONNECTION_ERROR_STR
+            }
+        }.resume()
     }
 }
 
@@ -125,4 +165,8 @@ struct LoginData: Codable {
     let username: String
     let password: String
     let deviceToken: String?
+}
+
+struct VerificationData: Codable {
+    let username: String
 }

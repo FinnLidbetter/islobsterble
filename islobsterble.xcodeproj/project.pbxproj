@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B612F4D328959025001745CD /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B612F4D228959025001745CD /* ForgotPasswordView.swift */; };
 		B652A9ED26F02F850079C0D8 /* ScoreComputer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */; };
 		B6C1D1AF284D404E003ED747 /* PassConfirmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */; };
 		E703D7B72579CDDF006C7731 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7B62579CDDF006C7731 /* AppDelegate.swift */; };
@@ -70,6 +71,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B612F4D228959025001745CD /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreComputer.swift; sourceTree = "<group>"; };
 		B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassConfirmer.swift; sourceTree = "<group>"; };
 		E703D7B32579CDDF006C7731 /* ReRack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReRack.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -200,6 +202,7 @@
 				E7E7888125AE8EB8000042D9 /* MoveHistoryView.swift */,
 				E7848ED12598F3F900817736 /* LoginView.swift */,
 				E7848ED32598F86700817736 /* RegistrationView.swift */,
+				B612F4D228959025001745CD /* ForgotPasswordView.swift */,
 				E7848ED52598FD5500817736 /* GameManagementView.swift */,
 				E7848ED7259927F800817736 /* SettingsView.swift */,
 				E7848ED92599320D00817736 /* StatsView.swift */,
@@ -408,6 +411,7 @@
 				E703D7BB2579CDDF006C7731 /* ContentView.swift in Sources */,
 				E7848EB825963EB100817736 /* SlotGrid.swift in Sources */,
 				E7848EDA2599320D00817736 /* StatsView.swift in Sources */,
+				B612F4D328959025001745CD /* ForgotPasswordView.swift in Sources */,
 				E7848EBE25963F7700817736 /* SlotRow.swift in Sources */,
 				E7848ECA2597ADEB00817736 /* DictionaryView.swift in Sources */,
 				B652A9ED26F02F850079C0D8 /* ScoreComputer.swift in Sources */,
