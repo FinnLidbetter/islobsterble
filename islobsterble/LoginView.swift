@@ -36,22 +36,35 @@ struct LoginView: View {
         NavigationView {
             VStack {
                 Spacer()
+                Text("ReRack").fontWeight(.bold).font(.title)
                 VStack {
-                    Text("Email")
+                    HStack {
+                        Text("Email").padding(.leading, 18)
+                        Spacer()
+                    }
                     TextField("Email", text: $username)
                         .multilineTextAlignment(.center)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.bottom, 18)
-                    Text("Password")
+                    HStack {
+                        Text("Password").padding(.leading, 18)
+                        Spacer()
+                    }
                     SecureField("Password", text: $password)
                         .multilineTextAlignment(.center)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
                         EmptyView()
                     }.isDetailLink(false)
-                    Button(action: { self.login() }) {
-                       Text("Login")
-                    }.padding(18)
+                    HStack {
+                        Button(action: { self.login() }) {
+                            Text("Login")
+                        }.padding(.leading, 18)
+                        Spacer()
+                        NavigationLink(destination: ForgotPasswordView()) {
+                            Text("Forgot password?").fontWeight(.regular)
+                        }
+                    }.padding(.top, 18)
                     Button(action: { self.resendVerification() }) {
                         Text("Re-send Verification Email")
                     }.allowsHitTesting(self.showSendEmailVerification).opacity(self.showSendEmailVerification ? 1 : 0)
@@ -60,7 +73,7 @@ struct LoginView: View {
                 Spacer()
             }
             .navigationBarTitle("Login", displayMode: .inline)
-            .navigationBarItems(leading: forgotPasswordButton, trailing: registerButton)
+            .navigationBarItems(trailing: registerButton)
         }.onAppear {
             checkSavedCredentials()
         }
