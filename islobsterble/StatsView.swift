@@ -18,31 +18,48 @@ struct StatsView: View {
     @State private var bestWordScore = 0
     @State private var bestIndividualGameScore = 0
     @State private var bestCombinedGameScore = 0
+    @State private var friendsStats: [FriendData] = []
+    @State private var selection: Set<Int> = []
     @State private var errorMessage = ""
     
     var body: some View {
         ZStack {
-            VStack {
-                HStack {
-                    Text("Wins: \(self.wins)").padding()
-                    Spacer()
-                    Text("Draws: \(self.draws)").padding()
-                    Spacer()
-                    Text("Losses: \(self.losses)").padding()
+            List {
+                Section(header: Text("Aggregate")) {
+                    HStack {
+                        Text("Wins: \(self.wins)")
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Draws: \(self.draws)")
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Losses: \(self.losses)")
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Best word score: \(self.bestWordScore)")
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Best individual game score: \(self.bestIndividualGameScore)")
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Best combined game score: \(self.bestCombinedGameScore)")
+                        Spacer()
+                    }
                 }
-                HStack {
-                    Text("Best word score: \(self.bestWordScore)").padding()
-                    Spacer()
+                Section(header: Text("Head-to-head")) {
+                    ForEach(0..<self.friendsStats.count, id: \.self) { index in
+                        HeadToHeadStatsRowView(isExpanded: self.selection.contains(self.friendsStats[index].friendIdentity.player_id),
+                                               displayName: self.friendsStats[index].friendIdentity.display_name,
+                                               stats: self.friendsStats[index].stats).onTapGesture {
+                            self.selectDeselect(index: index, playerId: self.friendsStats[index].friendIdentity.player_id)
+                        }
+                    }
                 }
-                HStack {
-                    Text("Best individual game score: \(self.bestIndividualGameScore)").padding()
-                    Spacer()
-                }
-                HStack {
-                    Text("Best combined game score: \(self.bestCombinedGameScore)").padding()
-                    Spacer()
-                }
-                Spacer()
             }.navigationBarTitle("Stats", displayMode: .inline)
             ErrorView(errorMessage: self.$errorMessage)
         }.onAppear {
@@ -50,11 +67,22 @@ struct StatsView: View {
         }
     }
     
-    func getStats() {
-        self.accessToken.renewedRequest(successCompletion: self.getStats, errorCompletion: self.getStatsError)
+    func selectDeselect(index: Int, playerId: Int) {
+        if self.selection.contains(playerId) {
+            self.selection.remove(playerId)
+        } else {
+            self.selection.insert(playerId)
+            if friendsStats[index].stats == nil {
+                self.getHeadToHead(index: index, playerId: playerId)
+            }
+        }
     }
     
-    private func getStats(token: Token) {
+    func getStats() {
+        self.accessToken.renewedRequest(successCompletion: self.getStatsRequest, errorCompletion: self.getStatsError)
+    }
+    
+    private func getStatsRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/stats") else {
             self.errorMessage = "Internal error constructing the stats URL."
             return
@@ -72,6 +100,9 @@ struct StatsView: View {
                         self.bestWordScore = decodedSettings.best_word_score
                         self.bestIndividualGameScore = decodedSettings.best_individual_game_score
                         self.bestCombinedGameScore = decodedSettings.best_combined_game_score
+                        for friendIdentity in decodedSettings.friends {
+                            self.friendsStats.append(FriendData(friendIdentity: friendIdentity, stats: nil))
+                        }
                     } else {
                         self.errorMessage = "Internal error decoding player stats."
                     }
@@ -101,7 +132,116 @@ struct StatsView: View {
             self.errorMessage = "Internal URL error in token refresh for getting stats."
         }
     }
+    
+    func getHeadToHead(index: Int, playerId: Int) {
+        self.accessToken.renewedRequest(successCompletion: self.getHeadToHeadRequest(index: index, playerId: playerId), errorCompletion: self.getHeadToHeadError)
+    }
+    
+    private func getHeadToHeadRequest(index: Int, playerId: Int) -> ((Token) -> ()) {
+        return { (token: Token) -> () in
+            guard let url = URL(string: ROOT_URL + "api/head-to-head/\(playerId)") else {
+                self.errorMessage = "Internal error constructing the head-to-head URL."
+                return
+            }
+            var request = URLRequest(url: url)
+            request.addAuthorization(token: token)
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                    if response.statusCode == 200 {
+                        let decoder = JSONDecoder()
+                        if let decodedStats = try? decoder.decode(FriendStatsSerializer.self, from: data) {
+                            self.friendsStats[index].stats = decodedStats
+                        } else {
+                            self.errorMessage = "Internal error decoding head-to-head stats."
+                        }
+                    } else {
+                        self.errorMessage = String(decoding: data, as: UTF8.self)
+                    }
+                } else {
+                    self.errorMessage = CONNECTION_ERROR_STR
+                }
+            }.resume()
+        }
+    }
+    
+    private func getHeadToHeadError(error: RenewedRequestError) {
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh token for getting head-to-head stats."
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for getting head-to-head stats."
+        }
+    }
 }
+
+struct HeadToHeadStatsRowView: View {
+    let isExpanded: Bool
+    let displayName: String
+    let stats: FriendStatsSerializer?
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Text(self.displayName).fontWeight(.bold)
+                Spacer()
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+            }
+            if isExpanded {
+                VStack {
+                    if let retrievedStats = self.stats {
+                        VStack {
+                            HStack {
+                                Text("Wins: \(retrievedStats.wins)")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Draws: \(retrievedStats.ties)")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Losses: \(retrievedStats.losses)")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Best combined game score: \(retrievedStats.best_combined_game_score)")
+                                Spacer()
+                            }
+                        }
+                    } else {
+                        Text("Loading...")
+                    }
+                }.frame(maxWidth: .infinity)
+            }
+        }.frame(maxWidth: .infinity)
+    }
+}
+
+struct FriendData {
+    let friendIdentity: FriendIdentitySerializer
+    var stats: FriendStatsSerializer?
+}
+
+struct FriendIdentitySerializer: Codable {
+    let display_name: String
+    let player_id: Int
+}
+
+struct FriendStatsSerializer: Codable {
+    let wins: Int
+    let ties: Int
+    let losses: Int
+    let best_combined_game_score: Int
+}
+
 struct StatsSerializer: Codable {
     let wins: Int
     let ties: Int
@@ -109,4 +249,5 @@ struct StatsSerializer: Codable {
     let best_word_score: Int
     let best_individual_game_score: Int
     let best_combined_game_score: Int
+    let friends: [FriendIdentitySerializer]
 }

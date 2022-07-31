@@ -10,7 +10,7 @@
 import SwiftUI
 
 let FRIEND_KEY_LENGTH = 7
-let DEFAULT_DICTIONARY_NAME = "SOWPODS (International)"
+let DEFAULT_DICTIONARY_NAME = "YAWL (Extended)"
 let DEFAULT_DICTIONARY_ID = 2
 
 struct SettingsView: View {
@@ -38,18 +38,17 @@ struct SettingsView: View {
                             Text(self.friendKey)
                             Spacer()
                             Button(action: self.regenerateFriendKey) {
-                                //Image("RegenerateKeyIcon").renderingMode(.original)
-                                Text("R")
+                                Image(systemName: "arrow.clockwise").renderingMode(.original).font(.system(size: 25.0))
+                            }
+                        }
+                        Picker(selection: $currentDictionaryIndex, label: Text("Dictionary")) {
+                            ForEach(0..<self.dictionaryNames.count, id: \.self) { index in
+                                Text(self.dictionaryNames[index])
                             }
                         }
                     }
                 }.navigationBarTitle("Settings", displayMode: .inline)
-                Text("Dictionary:")
-                Picker(selection: $currentDictionaryIndex, label: Text("Choose a Dictionary to use.")) {
-                    ForEach(0..<self.dictionaryNames.count, id: \.self) { index in
-                        Text(self.dictionaryNames[index])
-                    }
-                }
+                
                 Button(action: self.saveSettings) {
                     Text("Save")
                 }
