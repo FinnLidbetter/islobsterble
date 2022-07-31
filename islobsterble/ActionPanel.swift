@@ -29,7 +29,7 @@ struct ActionPanel: View {
             // Move history
             NavigationLink(destination: MoveHistoryView(gameId: self.gameId, loggedIn: self.$loggedIn, inGame: self.$inGame)) {
                 VStack {
-                    MoveHistoryIcon().stroke(lineWidth: 2.0).frame(width: 31, height: 31)
+                    Image(systemName: "list.number").font(.system(size: 35.0))
                     Text("Scores").font(.system(size: 12.0))
                 }.frame(width: 60, height: 50)
             }.isDetailLink(false)
@@ -80,20 +80,4 @@ struct ActionPanel: View {
         }.allowsHitTesting(!self.showingPicker)
     }
     
-}
-struct MoveHistoryIcon: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX - 1.0, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY - 1.0))
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.height / 5.0))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + rect.height / 5.0))
-       
-        return path
-    }
 }

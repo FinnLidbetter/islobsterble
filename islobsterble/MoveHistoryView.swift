@@ -128,6 +128,7 @@ struct MoveRowView: View {
                 ForEach(0..<self.moves.count, id: \.self) { playerIndex in
                     Text(self.primaryDisplayString(move: self.moves[playerIndex])).frame(maxWidth: .infinity)
                 }
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
             }
             if isExpanded {
                 HStack(spacing: 8) {
@@ -138,6 +139,7 @@ struct MoveRowView: View {
                             }
                         }.frame(maxWidth: .infinity)
                     }
+                    Image(systemName: "chevron.down").opacity(0)
                 }
             }
         }.frame(maxWidth: .infinity)
