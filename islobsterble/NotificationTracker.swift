@@ -12,9 +12,9 @@ import SwiftUI
 class NotificationTracker: ObservableObject {
     @Published var deviceTokenString: String? = nil
     @Published var refreshGames: Set<String> = []
-    @Published var refreshCurrentGame = false
+    @Published var refreshGameView = false
     
-    func setRefreshCurrentGame(value: Bool) {
-        self.refreshCurrentGame = value
+    func setRefreshGameView(value: Bool) {
+        self.refreshGameView = value
     }
 }

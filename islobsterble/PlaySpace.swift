@@ -126,7 +126,7 @@ struct PlaySpace: View {
             Image(systemName: "arrow.clockwise").font(.system(size: 25.0))
         })
         .onAppear() {
-            notificationTracker.setRefreshCurrentGame(value: false)
+            notificationTracker.setRefreshGameView(value: false)
             self.getGameState()
         }
         .onChange(of: notificationTracker.refreshGames) { gamesToRefresh in
@@ -138,13 +138,13 @@ struct PlaySpace: View {
                 }
             }
         }
-        .onChange(of: notificationTracker.refreshCurrentGame) { refreshCurrentGame in
-            if refreshCurrentGame {
+        .onChange(of: notificationTracker.refreshGameView) { refreshGameView in
+            if refreshGameView {
                 self.getGameState()
                 DispatchQueue.main.async {
                     self.slotNumber += 1
                 }
-                notificationTracker.setRefreshCurrentGame(value: false)
+                notificationTracker.setRefreshGameView(value: false)
             }
         }
     }

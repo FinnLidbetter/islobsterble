@@ -67,6 +67,12 @@ struct GameManagementView: View {
                     self.notificationTracker.refreshGames = []
                 }
             }
+            .onChange(of: notificationTracker.refreshGameView) { refreshGameView in
+                if refreshGameView {
+                    self.fetchActiveGames()
+                    notificationTracker.setRefreshGameView(value: false)
+                }
+            }
             ErrorView(errorMessage: self.$errorMessage)
         }
     }
