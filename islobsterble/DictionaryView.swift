@@ -18,9 +18,19 @@ struct DictionaryView: View {
     @State private var queryWord: String = ""
     @State private var message = ""
     @State private var errorMessage = ""
+    @State private var twoLetterWords: [String] = []
     
     var body: some View {
         VStack {
+            HStack {
+                Text("Two Letter Words").font(.headline).padding()
+                Spacer()
+            }
+            Text(self.twoLetterWords.count == 0 ? "Loading..." : "\(self.twoLetterWords.joined(separator: " "))").multilineTextAlignment(.center).padding()
+            HStack {
+                Text("Search").font(.headline).padding()
+                Spacer()
+            }
             TextField("", text: $queryWord)
                 .multilineTextAlignment(.center)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -34,6 +44,9 @@ struct DictionaryView: View {
             // Board
         }
         .navigationBarTitle("Dictionary", displayMode: .inline)
+        .onAppear {
+            self.fetchTwoLetterWords()
+        }
     }
     
     func submitQueryWord() {
@@ -73,6 +86,53 @@ struct DictionaryView: View {
     }
     
     private func submitQueryWordError(error: RenewedRequestError) {
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.inGame = false
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessage = CONNECTION_ERROR_STR
+            print(sessionError)
+        case .decodeError:
+            self.errorMessage = "Internal error decoding token refresh data in dictionary lookup."
+        case .keyChainRetrieveError:
+            self.inGame = false
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessage = "Internal URL error in token refresh for dictionary lookup."
+        }
+    }
+    
+    
+    func fetchTwoLetterWords() {
+        self.accessToken.renewedRequest(successCompletion: self.fetchTwoLetterWordsRequest, errorCompletion: self.fetchTwoLetterWordsError)
+    }
+    
+    private func fetchTwoLetterWordsRequest(token: Token) {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)/two-letter-words") else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.addAuthorization(token: token)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    if let words = try? JSONDecoder().decode([String].self, from: data) {
+                        self.twoLetterWords = words.sorted()
+                    }
+                } else {
+                    self.errorMessage = "Internal error in dictionary lookup."
+                }
+            } else {
+                self.message = CONNECTION_ERROR_STR
+            }
+        }.resume()
+    }
+    
+    private func fetchTwoLetterWordsError(error: RenewedRequestError) {
         switch error {
         case let .renewAccessError(response):
             if response.statusCode == 401 {
