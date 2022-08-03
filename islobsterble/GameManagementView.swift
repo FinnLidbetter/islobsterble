@@ -16,8 +16,9 @@ struct GameManagementView: View {
     @State private var selectedGameId: String? = nil
     @State private var inGame: Bool = false
     @State private var errorMessage = ""
-    @State private var activeGames = [GameInfo]()
-    @State private var completedGames = [GameInfo]()
+    @State private var requester: Player = Player(display_name: "", id: -1)
+    @State private var activeGames = [GameInfoV2]()
+    @State private var completedGames = [GameInfoV2]()
     
     var body: some View {
         ZStack {
@@ -38,7 +39,7 @@ struct GameManagementView: View {
                                     self.selectedGameId = String(self.activeGames[index].id)
                                     self.inGame = true
                                 }){
-                                GameLink(game: self.activeGames[index])
+                                    GameLink(game: self.activeGames[index], requester: self.requester)
                             }.buttonStyle(PlainButtonStyle())
                         }
                     }
@@ -49,7 +50,7 @@ struct GameManagementView: View {
                                     self.selectedGameId = String(self.completedGames[index].id)
                                     self.inGame = true
                                 }){
-                                GameLink(game: self.completedGames[index])
+                                    GameLink(game: self.completedGames[index], requester: self.requester)
                             }.buttonStyle(PlainButtonStyle())
                         }
                     }
@@ -88,15 +89,17 @@ struct GameManagementView: View {
         }
         var request = URLRequest(url: url)
         request.addAuthorization(token: renewedAccessToken)
+        request.addValue("v2", forHTTPHeaderField: "Accept-version")
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     let decoder = JSONDecoder()
                     decoder.dateDecodingStrategy = .secondsSince1970
-                    if let decodedGames = try? decoder.decode([GameInfo].self, from: data) {
+                    if let decodedGames = try? decoder.decode(Games.self, from: data) {
                         self.activeGames = []
                         self.completedGames = []
-                        for game in decodedGames {
+                        self.requester = decodedGames.requester
+                        for game in decodedGames.games {
                             if game.completed == nil {
                                 self.activeGames.append(game)
                             } else {
@@ -104,7 +107,13 @@ struct GameManagementView: View {
                             }
                         }
                         self.activeGames.sort {
-                            $0.started > $1.started
+                            if $0.whose_turn.player == self.requester {
+                                return true
+                            }
+                            if $1.whose_turn.player == self.requester {
+                                return false
+                            }
+                            return $0.started > $1.started
                         }
                         self.completedGames.sort {
                             $0.completed! > $1.completed!
@@ -233,11 +242,12 @@ struct MenuItems: View {
 }
 
 struct GameLink: View {
-    let game: GameInfo
+    let game: GameInfoV2
+    let requester: Player
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text(self.game.headerString())
+            Text(self.game.headerString(requester: self.requester))
             HStack{
                 Spacer()
                 ForEach(0..<self.game.game_players.count, id: \.self) { playerIndex in
@@ -252,7 +262,44 @@ struct GameLink: View {
 
 
 struct Games: Codable {
-    let games: [GameInfo]
+    let games: [GameInfoV2]
+    let requester: Player
+}
+
+struct GameInfoV2: Codable {
+    let id: Int
+    let game_players: [GamePlayer]
+    let whose_turn: GamePlayer
+    let started: Date
+    let completed: Date?
+    
+    func headerString(requester: Player) -> String {
+        var bestPlayer = ""
+        var bestScore = -1
+        var tie = false
+        for gamePlayer in self.game_players {
+            if gamePlayer.score > bestScore {
+                bestScore = gamePlayer.score
+                bestPlayer = gamePlayer.player.display_name
+                tie = false
+            } else if gamePlayer.score == bestScore {
+                tie = true
+            }
+        }
+        if completed == nil {
+            if self.whose_turn.player == requester {
+                return "Your turn"
+            }
+            return "\(self.whose_turn.player.display_name)'s turn"
+        } else {
+            if tie {
+                return "It was a draw!"
+            } else {
+                return "\(bestPlayer) won!"
+            }
+        }
+
+    }
 }
 
 struct GameInfo: Codable {
@@ -291,7 +338,11 @@ struct GamePlayer: Codable {
     let player: Player
     let turn_order: Int
 }
-struct Player: Codable {
+struct Player: Codable, Equatable {
     let display_name: String
     let id: Int
+    
+    static func ==(lhs: Player, rhs: Player) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
