@@ -16,7 +16,7 @@ struct RackForeground: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(0..<self.tiles.count) { tileIndex in
+            ForEach(0..<self.tiles.count, id: \.self) { tileIndex in
                 ZStack {
                     self.shuffleState[tileIndex].allowsHitTesting(false)
                     self.tiles[tileIndex].allowsHitTesting((self.tiles[tileIndex].face != INVISIBLE_LETTER && !self.showingPicker))

@@ -21,7 +21,7 @@ struct ExchangePicker: View {
             Text("Select Tiles to Exchange")
             HStack {
                 Spacer()
-                ForEach(0..<NUM_RACK_TILES) { index in
+                ForEach(0..<NUM_RACK_TILES, id: \.self) { index in
                     Button(action: {
                         self.onSelectTile(index)
                     }) {

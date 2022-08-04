@@ -16,9 +16,9 @@ struct BoardForeground: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(0..<self.tiles.count) { row in
+            ForEach(0..<self.tiles.count, id: \.self) { row in
                 HStack(spacing: 0) {
-                    ForEach(0..<self.tiles[row].count) { column in
+                    ForEach(0..<self.tiles[row].count, id: \.self) { column in
                         self.tiles[row][column].allowsHitTesting((!self.locked[row][column] && self.tiles[row][column].face != INVISIBLE_LETTER && !self.showingPicker))
                     }
                 }

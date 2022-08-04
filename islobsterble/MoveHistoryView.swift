@@ -132,7 +132,7 @@ struct MoveRowView: View {
             }
             if isExpanded {
                 HStack(spacing: 8) {
-                    ForEach(0..<self.moves.count) { playerIndex in
+                    ForEach(0..<self.moves.count, id: \.self) { playerIndex in
                         VStack {
                             ForEach(self.expandDisplayStrings(move: self.moves[playerIndex]), id: \.self) { secondaryWord in
                                 Text(secondaryWord)
