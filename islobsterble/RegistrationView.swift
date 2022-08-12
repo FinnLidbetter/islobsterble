@@ -15,7 +15,7 @@ struct RegistrationView: View {
     @State private var confirmPassword: String = ""
     @State private var displayName: String = ""
     @State private var message: String = ""
-    @State private var errorMessage: String = ""
+    @State private var errorMessages = ObservableQueue<String>()
     @State private var success = false
     
     var body: some View {
@@ -58,7 +58,7 @@ struct RegistrationView: View {
                 .disabled(self.password != self.confirmPassword || self.username == "" || self.displayName == "")
                 Text(self.message)
             }.navigationBarTitle("Register", displayMode: .inline)
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
 
@@ -69,11 +69,11 @@ struct RegistrationView: View {
             confirmed_password: self.confirmPassword,
             display_name: self.displayName)
         guard let encodedRegistrationData = try? JSONEncoder().encode(registrationData) else {
-            self.errorMessage = "Internal error encoding registration data."
+            self.errorMessages.offer(value: "Internal error encoding registration data.")
             return
         }
         guard let url = URL(string: ROOT_URL + "api/register") else {
-            self.errorMessage = "Internal error constructing registration URL."
+            self.errorMessages.offer(value: "Internal error constructing registration URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -86,11 +86,11 @@ struct RegistrationView: View {
                     self.success = true
                     self.message = "Successful registration for user '\(self.username)'."
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
                 self.success = false
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }

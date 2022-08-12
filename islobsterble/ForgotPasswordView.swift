@@ -11,7 +11,7 @@ import SwiftUI
 struct ForgotPasswordView: View {
     
     @State private var username: String = ""
-    @State private var errorMessage: String = ""
+    @State private var errorMessages = ObservableQueue<String>()
     @State private var infoMessage: String = ""
     
     var body: some View {
@@ -33,18 +33,18 @@ struct ForgotPasswordView: View {
                 Text(self.infoMessage)
                 Spacer()
             }.navigationBarTitle("Forgot Password", displayMode: .inline)
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
 
     }
     func requestPasswordReset() {
         let passwordResetRequestData = PasswordResetRequestData(username: self.username)
         guard let encodedData = try? JSONEncoder().encode(passwordResetRequestData) else {
-            self.errorMessage = "Internal error encoding request data."
+            self.errorMessages.offer(value: "Internal error encoding request data.")
             return
         }
         guard let url = URL(string: ROOT_URL + "api/request-password-reset") else {
-            self.errorMessage = "Internal error constructing request password reset URL."
+            self.errorMessages.offer(value: "Internal error constructing request password reset URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -59,7 +59,7 @@ struct ForgotPasswordView: View {
                     self.infoMessage = String(decoding: data, as: UTF8.self)
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }

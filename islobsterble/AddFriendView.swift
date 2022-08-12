@@ -14,7 +14,7 @@ struct AddFriendView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friendKey = ""
     @State private var message = ""
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -30,7 +30,7 @@ struct AddFriendView: View {
                 Spacer()
                 Text(self.message)
             }.navigationBarTitle("Add Friend", displayMode: .inline)
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     func submitAddFriend() {
@@ -39,11 +39,11 @@ struct AddFriendView: View {
     
     func submitAddFriendRequest(token: Token) {
         guard let encodedFriendKey = try? JSONEncoder().encode(FriendKeySerializer(friend_key: self.friendKey)) else {
-            self.errorMessage = "Internal error encoding friend key."
+            self.errorMessages.offer(value: "Internal error encoding friend key.")
             return
         }
         guard let url = URL(string: ROOT_URL + "api/friends") else {
-            self.errorMessage = "Internal error constructing URL for adding friends."
+            self.errorMessages.offer(value: "Internal error constructing URL for adding friends.")
             return
         }
         var request = URLRequest(url: url)
@@ -57,10 +57,10 @@ struct AddFriendView: View {
                     self.message = "Success"
                     self.friendKey = ""
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -72,14 +72,14 @@ struct AddFriendView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in add friends view."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in add friends view.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for add friends data submission."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for add friends data submission.")
         }
     }
 }

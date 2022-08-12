@@ -14,7 +14,7 @@ struct FriendsView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var myFriendKey = ""
     @State private var friends: [String] = []
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -39,7 +39,7 @@ struct FriendsView: View {
             .onAppear {
                 self.fetchData()
             }
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     func fetchData() {
@@ -48,7 +48,7 @@ struct FriendsView: View {
     
     func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/friends") else {
-            self.errorMessage = "Internal error constructing Friends API URL."
+            self.errorMessages.offer(value: "Internal error constructing Friends API URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -63,14 +63,14 @@ struct FriendsView: View {
                             self.friends.append(decodedData.friends[friendIndex].display_name)
                         }
                     } else {
-                        self.errorMessage = "Internal error decoding friends data."
+                        self.errorMessages.offer(value: "Internal error decoding friends data.")
                         return
                     }
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -81,14 +81,14 @@ struct FriendsView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in friends view."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in friends view.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for friends data fetch."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for friends data fetch.")
         }
     }
 }

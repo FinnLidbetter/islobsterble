@@ -20,7 +20,7 @@ struct StatsView: View {
     @State private var bestCombinedGameScore = 0
     @State private var friendsStats: [FriendData] = []
     @State private var selection: Set<Int> = []
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -61,7 +61,7 @@ struct StatsView: View {
                     }
                 }
             }.navigationBarTitle("Stats", displayMode: .inline)
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }.onAppear {
             self.getStats()
         }
@@ -84,7 +84,7 @@ struct StatsView: View {
     
     private func getStatsRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/stats") else {
-            self.errorMessage = "Internal error constructing the stats URL."
+            self.errorMessages.offer(value: "Internal error constructing the stats URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -104,13 +104,13 @@ struct StatsView: View {
                             self.friendsStats.append(FriendData(friendIdentity: friendIdentity, stats: nil))
                         }
                     } else {
-                        self.errorMessage = "Internal error decoding player stats."
+                        self.errorMessages.offer(value: "Internal error decoding player stats.")
                     }
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -122,14 +122,14 @@ struct StatsView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh token for getting stats."
+            self.errorMessages.offer(value: "Internal error decoding token refresh token for getting stats.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for getting stats."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for getting stats.")
         }
     }
     
@@ -140,7 +140,7 @@ struct StatsView: View {
     private func getHeadToHeadRequest(index: Int, playerId: Int) -> ((Token) -> ()) {
         return { (token: Token) -> () in
             guard let url = URL(string: ROOT_URL + "api/head-to-head/\(playerId)") else {
-                self.errorMessage = "Internal error constructing the head-to-head URL."
+                self.errorMessages.offer(value: "Internal error constructing the head-to-head URL.")
                 return
             }
             var request = URLRequest(url: url)
@@ -152,13 +152,13 @@ struct StatsView: View {
                         if let decodedStats = try? decoder.decode(FriendStatsSerializer.self, from: data) {
                             self.friendsStats[index].stats = decodedStats
                         } else {
-                            self.errorMessage = "Internal error decoding head-to-head stats."
+                            self.errorMessages.offer(value: "Internal error decoding head-to-head stats.")
                         }
                     } else {
-                        self.errorMessage = String(decoding: data, as: UTF8.self)
+                        self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                     }
                 } else {
-                    self.errorMessage = CONNECTION_ERROR_STR
+                    self.errorMessages.offer(value: CONNECTION_ERROR_STR)
                 }
             }.resume()
         }
@@ -171,14 +171,14 @@ struct StatsView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh token for getting head-to-head stats."
+            self.errorMessages.offer(value: "Internal error decoding token refresh token for getting head-to-head stats.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for getting head-to-head stats."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for getting head-to-head stats.")
         }
     }
 }

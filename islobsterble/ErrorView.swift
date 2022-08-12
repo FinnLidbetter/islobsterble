@@ -9,19 +9,28 @@
 import SwiftUI
 
 struct ErrorView: View {
-    @Binding var errorMessage: String
+    @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var errorMessages: ObservableQueue<String>
     
     var body: some View {
-        HStack {
-            Text("\(self.errorMessage)")
-            Button("x") {
-                self.errorMessage = ""
-            }.disabled(self.errorMessage == "")
+        ZStack {
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: self.errorMessages.swallowedPoll) {
+                        Image(systemName: "clear")
+                    }.disabled(self.errorMessages.isEmpty()).padding()
+                }
+                Spacer()
+            }
+            HStack {
+                Text("\(self.errorMessages.isEmpty() ? "" : self.errorMessages.peek()!)")
+            }
         }
         .padding()
         .frame(width: SCREEN_SIZE.width * 0.9, height: SCREEN_SIZE.height * 0.3)
-        .background(Color(.cyan))
+        .background(colorScheme == .dark ? Color(.black) : Color(.cyan))
         .clipShape(RoundedRectangle(cornerRadius: 20.0, style: .continuous)).shadow(radius: 6, x: -8, y: -8)
-        .offset(y: self.errorMessage == "" ? SCREEN_SIZE.height : 0)
+        .offset(y: self.errorMessages.isEmpty() ? SCREEN_SIZE.height : 0)
     }
 }

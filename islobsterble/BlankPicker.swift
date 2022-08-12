@@ -10,7 +10,7 @@
 import SwiftUI
 
 struct BlankPicker: View {
-    
+    @Environment(\.colorScheme) var colorScheme
     @Binding var isPresented: Bool
     var onSelection: ((Character) -> Void)
     
@@ -80,7 +80,7 @@ struct BlankPicker: View {
         }
         .padding()
         .frame(width: SCREEN_SIZE.width * 0.9, height: SCREEN_SIZE.height * 0.3)
-        .background(Color(.cyan))
+        .background(colorScheme == .dark ? Color(.black) : Color(.cyan))
         .clipShape(RoundedRectangle(cornerRadius: 20.0, style: .continuous)).shadow(radius: 6, x: -8, y: -8)
         .offset(y: self.isPresented ? 0 : SCREEN_SIZE.height)
     }

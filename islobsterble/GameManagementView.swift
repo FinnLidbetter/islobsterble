@@ -15,7 +15,7 @@ struct GameManagementView: View {
     @Binding var loggedIn: Bool
     @State private var selectedGameId: String? = nil
     @State private var inGame: Bool = false
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     @State private var requester: Player = Player(display_name: "", id: -1)
     @State private var activeGames = [GameInfoV2]()
     @State private var completedGames = [GameInfoV2]()
@@ -74,7 +74,7 @@ struct GameManagementView: View {
                     notificationTracker.setRefreshGameView(value: false)
                 }
             }
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     
@@ -119,13 +119,13 @@ struct GameManagementView: View {
                             $0.completed! > $1.completed!
                         }
                     } else {
-                        self.errorMessage = "Internal error decoding game management view data."
+                        self.errorMessages.offer(value: "Internal error decoding game management view data.")
                     }
                 } else {
-                    self.errorMessage = "Internal error fetching game management view data."
+                    self.errorMessages.offer(value: "Internal error fetching game management view data.")
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -136,14 +136,14 @@ struct GameManagementView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in game management view."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in game management view.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for game management view."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for game management view.")
         }
     }
     
@@ -173,10 +173,10 @@ struct GameManagementView: View {
                     let _ = KeyChain.delete(location: REFRESH_TAG)
                     self.loggedIn = false
                 } else {
-                    self.errorMessage = "Unexpected internal logout error."
+                    self.errorMessages.offer(value: "Unexpected internal logout error.")
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -188,14 +188,14 @@ struct GameManagementView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in logging out."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in logging out.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for logout."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for logout.")
         }
     }
 }

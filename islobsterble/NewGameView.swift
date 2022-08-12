@@ -18,7 +18,7 @@ struct NewGameView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -44,7 +44,7 @@ struct NewGameView: View {
                     self.fetchData()
                 }
             }
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     
@@ -54,7 +54,7 @@ struct NewGameView: View {
     
     func fetchDataRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
-            self.errorMessage = "Internal error constructing new game URL."
+            self.errorMessages.offer(value: "Internal error constructing new game URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -65,14 +65,14 @@ struct NewGameView: View {
                     if let decodedData = try? JSONDecoder().decode(NewGameFriendsSerializer.self, from: data) {
                         self.friends = decodedData.friends
                     } else {
-                        self.errorMessage = "Internal error decoding list of friends for new game."
+                        self.errorMessages.offer(value: "Internal error decoding list of friends for new game.")
                         return
                     }
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -87,7 +87,7 @@ struct NewGameView: View {
     
     private func startGameRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/new-game") else {
-            self.errorMessage = "Internal error constructing URL for new game request."
+            self.errorMessages.offer(value: "Internal error constructing URL for new game request.")
             return
         }
         var chosenFriendIDs = [Int]()
@@ -95,7 +95,7 @@ struct NewGameView: View {
             chosenFriendIDs.append(self.friends[friendIndex].player_id)
         }
         guard let encodedOpponents = try? JSONSerialization.data(withJSONObject: chosenFriendIDs) else {
-            self.errorMessage = "Internal error encoding opponents data."
+            self.errorMessages.offer(value: "Internal error encoding opponents data.")
             return
         }
         var request = URLRequest(url: url)
@@ -111,10 +111,10 @@ struct NewGameView: View {
                     self.inGame = true
                     self.chosenOpponents = Set([])
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -126,14 +126,14 @@ struct NewGameView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in new game request."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in new game request.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for new game request."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for new game request.")
         }
     }
 }

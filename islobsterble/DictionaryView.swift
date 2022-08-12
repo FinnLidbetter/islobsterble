@@ -63,14 +63,15 @@ struct DictionaryView: View {
         }
         var request = URLRequest(url: url)
         request.addAuthorization(token: token)
+        let submittedWord = self.queryWord
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
                     if let dictionaryEntry = try? JSONDecoder().decode(DictionaryResponseSerializer.self, from: data) {
                         if dictionaryEntry.word == nil {
-                            self.message = "\"\(self.queryWord)\" is not in the dictionary."
+                            self.message = "\"\(submittedWord)\" is not in the dictionary."
                         } else {
-                            self.message = "\"\(self.queryWord)\" is a valid word!"
+                            self.message = "\"\(submittedWord)\" is a valid word!"
                             if dictionaryEntry.definition != nil {
                                 self.message += "\n\(dictionaryEntry.word!): \(dictionaryEntry.definition!)"
                             }

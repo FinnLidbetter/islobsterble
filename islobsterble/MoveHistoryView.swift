@@ -17,7 +17,7 @@ struct MoveHistoryView: View {
     @Binding var inGame: Bool
     @State private var playerMoves: [PlayerMovesSerializer] = []
     @State private var selection: Set<Int> = []
-    @State private var errorMessage = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -38,7 +38,7 @@ struct MoveHistoryView: View {
                     self.getMoveHistory()
                 }
             }.frame(maxWidth: .infinity)
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     
@@ -60,13 +60,13 @@ struct MoveHistoryView: View {
                     if let decodedPlayerMoves = try? decoder.decode([PlayerMovesSerializer].self, from: data) {
                         self.playerMoves = decodedPlayerMoves
                     } else {
-                        self.errorMessage = "Internal error. Failed to decode move history data."
+                        self.errorMessages.offer(value: "Internal error. Failed to decode move history data.")
                     }
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = "."
+                self.errorMessages.offer(value: error?.localizedDescription ?? "Error")
             }
         }.resume()
     }
@@ -79,15 +79,15 @@ struct MoveHistoryView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in getting move history."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in getting move history.")
         case .keyChainRetrieveError:
             self.inGame = false
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for getting move history."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for getting move history.")
         }
     }
     

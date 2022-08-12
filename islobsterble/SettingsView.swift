@@ -22,7 +22,7 @@ struct SettingsView: View {
     @State private var dictionaryIDs = [DEFAULT_DICTIONARY_ID]
     @State private var currentDictionaryIndex = 0
     @State private var message: String = ""
-    @State private var errorMessage: String = ""
+    @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
         ZStack {
@@ -57,7 +57,7 @@ struct SettingsView: View {
             }.onAppear {
                 self.getSettings()
             }
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
     }
     
@@ -67,7 +67,7 @@ struct SettingsView: View {
     
     private func getSettingsRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/player-settings") else {
-            self.errorMessage = "Internal error constructing player settings URL."
+            self.errorMessages.offer(value: "Internal error constructing player settings URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -88,13 +88,13 @@ struct SettingsView: View {
                         }
                         self.currentDictionaryIndex = self.dictionaryNames.firstIndex(where: {$0 == decodedSettings.player.dictionary.name}) ?? 0
                     } else {
-                        self.errorMessage = "Internal error decoding player settings data."
+                        self.errorMessages.offer(value: "Internal error decoding player settings data.")
                     }
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -106,14 +106,14 @@ struct SettingsView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh token for getting settings."
+            self.errorMessages.offer(value: "Internal error decoding token refresh token for getting settings.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for getting settings."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for getting settings.")
         }
     }
     
@@ -153,10 +153,10 @@ struct SettingsView: View {
                     self.getSettings()
                     self.message = "Settings saved."
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -168,14 +168,14 @@ struct SettingsView: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in saving settings."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in saving settings.")
         case .keyChainRetrieveError:
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for saving settings."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for saving settings.")
         }
     }
 }

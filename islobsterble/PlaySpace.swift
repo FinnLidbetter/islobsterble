@@ -76,7 +76,7 @@ struct PlaySpace: View {
     @State private var showPassConfirmer = false
     
     // Error message
-    @State private var errorMessage = ""
+    @StateObject private var errorMessages = ObservableQueue<String>()
     
     // Environment variables.
     @ObservedObject var boardSlots = SlotGrid(num_rows: DEFAULT_ROWS, num_columns: DEFAULT_COLUMNS)
@@ -115,7 +115,7 @@ struct PlaySpace: View {
                     onExchange: self.selectExchange
                 ).padding(.bottom, 10)
             }
-            ErrorView(errorMessage: self.$errorMessage)
+            ErrorView(errorMessages: self.errorMessages)
         }
         .navigationBarTitle("Game", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
@@ -204,15 +204,15 @@ struct PlaySpace: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal decode error."
+            self.errorMessages.offer(value: "Internal decode error.")
         case .keyChainRetrieveError:
             self.inGame = false
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error."
+            self.errorMessages.offer(value: "Internal URL error.")
         }
     }
     
@@ -245,11 +245,11 @@ struct PlaySpace: View {
     
     private func submitTurn(turn: TurnSerializer, token: Token) {
         guard let encodedTurnData = try? JSONEncoder().encode(turn.played_tiles) else {
-            self.errorMessage = "Internal error encoding turn data."
+            self.errorMessages.offer(value: "Internal error encoding turn data.")
             return
         }
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
-            self.errorMessage = "Internal error creating submit turn URL."
+            self.errorMessages.offer(value: "Internal error creating submit turn URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -260,12 +260,13 @@ struct PlaySpace: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    self.errorMessage = ""
+                    self.errorMessages.clear()
                 } else {
-                    self.errorMessage = String(decoding: data, as: UTF8.self)
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
+                    print(self.errorMessages.peek()!)
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
             self.getGameState()
         }.resume()
@@ -596,7 +597,7 @@ struct PlaySpace: View {
     
     private func getGameStateRequest(token: Token) {
         guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
-            self.errorMessage = "Internal error creating get game state URL."
+            self.errorMessages.offer(value: "Internal error creating get game state URL.")
             return
         }
         var request = URLRequest(url: url)
@@ -671,12 +672,12 @@ struct PlaySpace: View {
                                     message = "Game over. It was a draw!"
                                 }
                             }
-                            self.errorMessage = message
+                            self.errorMessages.offer(value: message)
                         }
                     }
                 }
             } else {
-                self.errorMessage = CONNECTION_ERROR_STR
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
         }.resume()
     }
@@ -689,15 +690,15 @@ struct PlaySpace: View {
                 self.loggedIn = false
             }
         case let .urlSessionError(sessionError):
-            self.errorMessage = CONNECTION_ERROR_STR
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             print(sessionError)
         case .decodeError:
-            self.errorMessage = "Internal error decoding token refresh data in getting game state."
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in getting game state.")
         case .keyChainRetrieveError:
             self.inGame = false
             self.loggedIn = false
         case .urlError:
-            self.errorMessage = "Internal URL error in token refresh for getting game state."
+            self.errorMessages.offer(value: "Internal URL error in token refresh for getting game state.")
         }
     }
     

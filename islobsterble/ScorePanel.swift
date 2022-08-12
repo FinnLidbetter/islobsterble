@@ -13,6 +13,7 @@ let SCORE_PANEL_COLOR = Color(red: 155 / 255, green: 250 / 255, blue: 255 / 255)
 let CURRENT_PLAYER_COLOR = Color(red: 70 / 255, green: 130 / 255, blue: 210 / 255)
 
 struct ScorePanel: View {
+    @Environment(\.colorScheme) var colorScheme
     let playerScores: [PlayerScore]
     let turnNumber: Int
     let prevMove: PrevMoveSerializer?
@@ -26,7 +27,7 @@ struct ScorePanel: View {
                     Spacer()
                     Text("\(self.playerScores[index].playerName): \(self.playerScores[index].score)").padding(10).background(self.turnNumber % self.playerScores.count == self.playerScores[index].turnOrder ? CURRENT_PLAYER_COLOR : Color(.clear)).cornerRadius(10)
                 }
-            }.padding(5).background(Rectangle().fill(SCORE_PANEL_COLOR))
+            }.padding(5).background(Rectangle().fill(colorScheme == .dark ? Color.clear : SCORE_PANEL_COLOR))
             Rectangle().fill(Color.black).frame(minWidth: 0, idealWidth: .infinity, maxWidth: .infinity, minHeight: 1, idealHeight: 2, maxHeight: 2, alignment: .center)
             HStack {
                 Text(self.prevMoveString()).padding()

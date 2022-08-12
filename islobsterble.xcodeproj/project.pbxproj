@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B612F4D328959025001745CD /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B612F4D228959025001745CD /* ForgotPasswordView.swift */; };
+		B64230BC289DAD9200A2FEF1 /* ObservableQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */; };
 		B652A9ED26F02F850079C0D8 /* ScoreComputer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */; };
 		B6C1D1AF284D404E003ED747 /* PassConfirmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */; };
 		E703D7B72579CDDF006C7731 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7B62579CDDF006C7731 /* AppDelegate.swift */; };
@@ -72,6 +73,7 @@
 
 /* Begin PBXFileReference section */
 		B612F4D228959025001745CD /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
+		B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableQueue.swift; sourceTree = "<group>"; };
 		B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreComputer.swift; sourceTree = "<group>"; };
 		B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassConfirmer.swift; sourceTree = "<group>"; };
 		E703D7B32579CDDF006C7731 /* ReRack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReRack.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -216,6 +218,7 @@
 				E71C57FE26A386EE00B33BA0 /* Constants.swift */,
 				E75FB51926A4C2A9005B326A /* NotificationTracker.swift */,
 				B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */,
+				B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */,
 			);
 			path = islobsterble;
 			sourceTree = "<group>";
@@ -406,6 +409,7 @@
 				E703D7B92579CDDF006C7731 /* SceneDelegate.swift in Sources */,
 				E71C57FF26A386EE00B33BA0 /* Constants.swift in Sources */,
 				E7848EE025994DEF00817736 /* NewGameView.swift in Sources */,
+				B64230BC289DAD9200A2FEF1 /* ObservableQueue.swift in Sources */,
 				E7848ECC2597DC8600817736 /* UtilityFuncs.swift in Sources */,
 				E7848EAE25963C3400817736 /* BoardSquare.swift in Sources */,
 				E703D7BB2579CDDF006C7731 /* ContentView.swift in Sources */,
