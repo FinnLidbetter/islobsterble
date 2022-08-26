@@ -21,7 +21,6 @@ struct SettingsView: View {
     @State private var dictionaryNames = [DEFAULT_DICTIONARY_NAME]
     @State private var dictionaryIDs = [DEFAULT_DICTIONARY_ID]
     @State private var currentDictionaryIndex = 0
-    @State private var message: String = ""
     @State private var errorMessages = ObservableQueue<String>()
     
     var body: some View {
@@ -31,7 +30,9 @@ struct SettingsView: View {
                     Section(header: Text("User Settings")) {
                         HStack {
                             Text("Display name: ")
-                            TextField("", text: $displayName)
+                            TextField("", text: $displayName, onCommit: self.saveSettings)
+                            Spacer()
+                            Image(systemName: "pencil")
                         }
                         HStack {
                             Text("Friend key: ")
@@ -41,25 +42,81 @@ struct SettingsView: View {
                                 Image(systemName: "arrow.clockwise").renderingMode(.original).font(.system(size: 25.0))
                             }
                         }
-                        Picker(selection: $currentDictionaryIndex, label: Text("Dictionary")) {
+                        Picker(selection: $currentDictionaryIndex, label: Text("Dictionary:")) {
                             ForEach(0..<self.dictionaryNames.count, id: \.self) { index in
                                 Text(self.dictionaryNames[index])
+                            }
+                        }.onChange(of: currentDictionaryIndex) { _ in
+                            self.saveSettings()
+                        }
+                    }
+                    Section(header: Text("Account")) {
+                        Button(action: self.logout) {
+                            HStack {
+                                Text("Logout")
+                                Spacer()
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                            }
+                        }
+                        NavigationLink(destination: DeleteAccountView()) {
+                            HStack {
+                                Text("Request Account Deletion")
+                                Spacer()
                             }
                         }
                     }
                 }.navigationBarTitle("Settings", displayMode: .inline)
-                
-                Button(action: self.saveSettings) {
-                    Text("Save")
-                }
-                Text(self.message)
-                Spacer()
             }.onAppear {
                 self.getSettings()
             }
             ErrorView(errorMessages: self.errorMessages)
         }
     }
+    
+    private func logout() {
+        self.accessToken.renewedRequest(successCompletion: self.logoutRequest, errorCompletion: self.logoutRenewError)
+    }
+     
+    private func logoutRequest(renewedAccessToken: Token) {
+        guard let url = URL(string: ROOT_URL + "api/logout") else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addAuthorization(token: renewedAccessToken)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    let _ = KeyChain.delete(location: REFRESH_TAG)
+                    self.loggedIn = false
+                } else {
+                    self.errorMessages.offer(value: "Unexpected internal logout error.")
+                }
+            } else {
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
+            }
+        }.resume()
+    }
+    
+    private func logoutRenewError(error: RenewedRequestError) {
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
+            print(sessionError)
+        case .decodeError:
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in logging out.")
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessages.offer(value: "Internal URL error in token refresh for logout.")
+        }
+    }
+
     
     func getSettings() {
         self.accessToken.renewedRequest(successCompletion: self.getSettingsRequest, errorCompletion: self.getSettingsError)
@@ -124,6 +181,7 @@ struct SettingsView: View {
             newKeyArr.append(characters[Int.random(in: 0..<characters.count)])
         }
         self.friendKey = newKeyArr.joined(separator: "")
+        self.saveSettings()
     }
     
     func saveSettings() {
@@ -148,10 +206,8 @@ struct SettingsView: View {
         request.httpBody = encodedSettingsData
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
-                
                 if response.statusCode == 200 {
                     self.getSettings()
-                    self.message = "Settings saved."
                 } else {
                     self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
                 }

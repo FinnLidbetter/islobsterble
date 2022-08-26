@@ -58,7 +58,6 @@ struct GameManagementView: View {
             }
             .navigationBarTitle("Menu", displayMode: .inline)
             .navigationBarBackButtonHidden(true)
-            .navigationBarItems(leading: logoutButton)
             .onAppear {
                 self.fetchActiveGames()
             }
@@ -147,57 +146,6 @@ struct GameManagementView: View {
         }
     }
     
-    var logoutButton: some View {
-        Button(action: { self.logout() }) {
-            HStack {
-                Image(systemName: "chevron.left").aspectRatio(contentMode: .fit)
-                Text("Logout")
-            }
-        }
-    }
-    private func logout() {
-        self.accessToken.renewedRequest(successCompletion: self.logoutRequest, errorCompletion: self.logoutRenewError)
-    }
-    
-    private func logoutRequest(renewedAccessToken: Token) {
-        guard let url = URL(string: ROOT_URL + "api/logout") else {
-            print("Invalid URL")
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addAuthorization(token: renewedAccessToken)
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if error == nil, let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
-                    let _ = KeyChain.delete(location: REFRESH_TAG)
-                    self.loggedIn = false
-                } else {
-                    self.errorMessages.offer(value: "Unexpected internal logout error.")
-                }
-            } else {
-                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
-            }
-        }.resume()
-    }
-    
-    private func logoutRenewError(error: RenewedRequestError) {
-        switch error {
-        case let .renewAccessError(response):
-            if response.statusCode == 401 {
-                self.loggedIn = false
-            }
-        case let .urlSessionError(sessionError):
-            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
-            print(sessionError)
-        case .decodeError:
-            self.errorMessages.offer(value: "Internal error decoding token refresh data in logging out.")
-        case .keyChainRetrieveError:
-            self.loggedIn = false
-        case .urlError:
-            self.errorMessages.offer(value: "Internal URL error in token refresh for logout.")
-        }
-    }
 }
 struct MenuItems: View {
     @Binding var loggedIn: Bool

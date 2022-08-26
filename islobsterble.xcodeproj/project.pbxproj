@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B60942DA28B6FBBE00307C53 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60942D928B6FBBE00307C53 /* DeleteAccountView.swift */; };
 		B612F4D328959025001745CD /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B612F4D228959025001745CD /* ForgotPasswordView.swift */; };
 		B64230BC289DAD9200A2FEF1 /* ObservableQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */; };
 		B652A9ED26F02F850079C0D8 /* ScoreComputer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */; };
@@ -72,6 +73,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B60942D928B6FBBE00307C53 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
 		B612F4D228959025001745CD /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableQueue.swift; sourceTree = "<group>"; };
 		B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreComputer.swift; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 				E75FB51926A4C2A9005B326A /* NotificationTracker.swift */,
 				B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */,
 				B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */,
+				B60942D928B6FBBE00307C53 /* DeleteAccountView.swift */,
 			);
 			path = islobsterble;
 			sourceTree = "<group>";
@@ -394,6 +397,7 @@
 				E703D7B72579CDDF006C7731 /* AppDelegate.swift in Sources */,
 				E7848ED22598F3F900817736 /* LoginView.swift in Sources */,
 				E7848EC825978A0800817736 /* ActionPanel.swift in Sources */,
+				B60942DA28B6FBBE00307C53 /* DeleteAccountView.swift in Sources */,
 				B6C1D1AF284D404E003ED747 /* PassConfirmer.swift in Sources */,
 				E7848EBA25963EFC00817736 /* RackForeground.swift in Sources */,
 				E75FB51A26A4C2A9005B326A /* NotificationTracker.swift in Sources */,
