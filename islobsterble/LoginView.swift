@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var accessToken: ManagedAccessToken
     @EnvironmentObject var notificationTracker: NotificationTracker
     
@@ -37,43 +38,52 @@ struct LoginView: View {
             VStack {
                 Spacer()
                 Text("ReRack").fontWeight(.bold).font(.title)
-                VStack {
-                    HStack {
-                        Text("Email").padding(.leading, 18)
-                        Spacer()
-                    }
-                    TextField("Email", text: $username)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.bottom, 18)
-                    HStack {
-                        Text("Password").padding(.leading, 18)
-                        Spacer()
-                    }
-                    SecureField("Password", text: $password)
-                        .multilineTextAlignment(.center)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
-                        EmptyView()
-                    }.isDetailLink(false)
-                    HStack {
-                        Button(action: { self.login() }) {
-                            Text("Login")
-                        }.padding(.leading, 18)
-                        Spacer()
-                        NavigationLink(destination: ForgotPasswordView()) {
-                            Text("Forgot password?").fontWeight(.regular)
+                HStack {
+                    Spacer(minLength: 10)
+                    VStack {
+                        HStack {
+                            Text("Email")
+                            Spacer()
                         }
-                    }.padding(.top, 18)
-                    Button(action: { self.resendVerification() }) {
-                        Text("Re-send Verification Email")
-                    }.allowsHitTesting(self.showSendEmailVerification).opacity(self.showSendEmailVerification ? 1 : 0)
-                }.padding(18)
+                        TextField("Email", text: $username)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.bottom, 18)
+                        HStack {
+                            Text("Password")
+                            Spacer()
+                        }
+                        SecureField("Password", text: $password)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        NavigationLink(destination: GameManagementView(loggedIn: self.$loggedIn).environmentObject(self.accessToken), isActive: self.$loggedIn) {
+                            EmptyView()
+                        }.isDetailLink(false)
+                        HStack {
+                            Button(action: { self.login() }) {
+                                Text("Login")
+                            }.padding(.leading, 18)
+                            Spacer()
+                            NavigationLink(destination: ForgotPasswordView()) {
+                                Text("Forgot password?").fontWeight(.regular)
+                            }
+                        }.padding(.top, 18)
+                        Button(action: { self.resendVerification() }) {
+                            Text("Re-send Verification Email")
+                        }.allowsHitTesting(self.showSendEmailVerification).opacity(self.showSendEmailVerification ? 1 : 0)
+                    }
+                    .padding(18)
+                    .background(colorScheme == .dark ? .black : .white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                
+                    Spacer(minLength: 10)
+                }
                 Text(self.infoMessage)
                 Spacer()
             }
             .navigationBarTitle("Login", displayMode: .inline)
             .navigationBarItems(trailing: registerButton)
+            .background(RERACK_PRIMARY_COLOR)
         }.onAppear {
             checkSavedCredentials()
         }

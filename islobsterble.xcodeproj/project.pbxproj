@@ -17,7 +17,6 @@
 		E703D7BB2579CDDF006C7731 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7BA2579CDDF006C7731 /* ContentView.swift */; };
 		E703D7BD2579CDE3006C7731 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E703D7BC2579CDE3006C7731 /* Assets.xcassets */; };
 		E703D7C02579CDE3006C7731 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E703D7BF2579CDE3006C7731 /* Preview Assets.xcassets */; };
-		E703D7C32579CDE3006C7731 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E703D7C12579CDE3006C7731 /* LaunchScreen.storyboard */; };
 		E703D7CE2579CDE3006C7731 /* islobsterbleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7CD2579CDE3006C7731 /* islobsterbleTests.swift */; };
 		E703D7D92579CDE3006C7731 /* islobsterbleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E703D7D82579CDE3006C7731 /* islobsterbleUITests.swift */; };
 		E71C57F726A11F1B00B33BA0 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E71C57F626A11F1B00B33BA0 /* ErrorView.swift */; };
@@ -84,7 +83,6 @@
 		E703D7BA2579CDDF006C7731 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E703D7BC2579CDE3006C7731 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E703D7BF2579CDE3006C7731 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		E703D7C22579CDE3006C7731 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E703D7C42579CDE3006C7731 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E703D7C92579CDE3006C7731 /* islobsterbleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = islobsterbleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E703D7CD2579CDE3006C7731 /* islobsterbleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = islobsterbleTests.swift; sourceTree = "<group>"; };
@@ -181,7 +179,6 @@
 				E703D7B82579CDDF006C7731 /* SceneDelegate.swift */,
 				E703D7BA2579CDDF006C7731 /* ContentView.swift */,
 				E703D7BC2579CDE3006C7731 /* Assets.xcassets */,
-				E703D7C12579CDE3006C7731 /* LaunchScreen.storyboard */,
 				E703D7C42579CDE3006C7731 /* Info.plist */,
 				E703D7BE2579CDE3006C7731 /* Preview Content */,
 				E7848EC32596D29E00817736 /* BlankPicker.swift */,
@@ -356,7 +353,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E703D7C32579CDE3006C7731 /* LaunchScreen.storyboard in Resources */,
 				E703D7C02579CDE3006C7731 /* Preview Assets.xcassets in Resources */,
 				E703D7BD2579CDE3006C7731 /* Assets.xcassets in Resources */,
 			);
@@ -458,17 +454,6 @@
 		};
 /* End PBXTargetDependency section */
 
-/* Begin PBXVariantGroup section */
-		E703D7C12579CDE3006C7731 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				E703D7C22579CDE3006C7731 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		E703D7DB2579CDE3006C7731 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -521,7 +506,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -576,7 +561,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -596,7 +581,7 @@
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = islobsterble/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -604,7 +589,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = FinnLidbetter.islobsterble;
 				PRODUCT_NAME = ReRack;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -618,7 +603,7 @@
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = islobsterble/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -626,7 +611,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = FinnLidbetter.islobsterble;
 				PRODUCT_NAME = ReRack;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

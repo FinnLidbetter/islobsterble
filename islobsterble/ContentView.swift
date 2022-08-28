@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-
+let RERACK_PRIMARY_COLOR = Color(red: 102 / 255, green: 180 / 255, blue: 249 / 255)
 
 struct ContentView: View {
     @ObservedObject var accessToken: ManagedAccessToken = ManagedAccessToken()
@@ -17,12 +17,3 @@ struct ContentView: View {
         LoginView().environmentObject(accessToken).environment(\.sizeCategory, .large)
     }
 }
-
-//var previewBoardSlots = SlotGrid(num_rows: 15, num_columns: 15)
-//var previewRackSlots = SlotRow(num_slots: 7)
-
-//struct ContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ContentView().environmentObject(previewBoardSlots).environmentObject(previewRackSlots)
-//    }
-//}
