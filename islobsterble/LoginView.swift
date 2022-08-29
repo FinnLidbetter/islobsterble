@@ -92,7 +92,11 @@ struct LoginView: View {
     func login() {
         let userNotificationCenter = UNUserNotificationCenter.current()
         userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
-            print("Permission granted: \(granted)")
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
         }
         
         let loginData = LoginData(username: self.username, password: self.password, deviceToken: self.notificationTracker.deviceTokenString)

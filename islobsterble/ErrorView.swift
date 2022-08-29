@@ -14,6 +14,9 @@ struct ErrorView: View {
     
     var body: some View {
         ZStack {
+            HStack {
+                Text("\(self.errorMessages.isEmpty() ? "" : self.errorMessages.peek()!)")
+            }
             VStack {
                 HStack {
                     Spacer()
@@ -22,9 +25,6 @@ struct ErrorView: View {
                     }.disabled(self.errorMessages.isEmpty()).padding()
                 }
                 Spacer()
-            }
-            HStack {
-                Text("\(self.errorMessages.isEmpty() ? "" : self.errorMessages.peek()!)")
             }
         }
         .padding()

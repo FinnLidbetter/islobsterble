@@ -73,6 +73,11 @@ struct GameManagementView: View {
                     notificationTracker.setRefreshGameView(value: false)
                 }
             }
+            .onChange(of: notificationTracker.deviceTokenString) { deviceToken in
+                if deviceToken != nil {
+                    self.postDeviceToken(deviceToken: deviceToken!)
+                }
+            }
             ErrorView(errorMessages: self.errorMessages)
         }
     }
@@ -146,6 +151,54 @@ struct GameManagementView: View {
         }
     }
     
+    func postDeviceToken(deviceToken: String) {
+        let partialPostDeviceTokenRequest = { accessToken in
+            postDeviceTokenRequest(renewedAccessToken: accessToken, deviceToken: deviceToken)
+        }
+        self.accessToken.renewedRequest(successCompletion: partialPostDeviceTokenRequest, errorCompletion: postDeviceTokenErrorCompletion)
+    }
+    private func postDeviceTokenRequest(renewedAccessToken: Token, deviceToken: String) {
+        guard let encodedDeviceToken = try? JSONEncoder().encode(deviceToken) else {
+            self.errorMessages.offer(value: "Internal error encoding device token.")
+            return
+        }
+        guard let url = URL(string: ROOT_URL + "api/device-token") else {
+            self.errorMessages.offer(value: "Internal error constructing URL for posting the device token.")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = encodedDeviceToken
+        request.addAuthorization(token: renewedAccessToken)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil, let data = data, let response = response as? HTTPURLResponse {
+                if response.statusCode != 200 {
+                    self.errorMessages.offer(value: String(decoding: data, as: UTF8.self))
+                }
+            } else {
+                self.errorMessages.offer(value: CONNECTION_ERROR_STR)
+            }
+        }.resume()
+
+    }
+    func postDeviceTokenErrorCompletion(error: RenewedRequestError) {
+        switch error {
+        case let .renewAccessError(response):
+            if response.statusCode == 401 {
+                self.loggedIn = false
+            }
+        case let .urlSessionError(sessionError):
+            self.errorMessages.offer(value: CONNECTION_ERROR_STR)
+            print(sessionError)
+        case .decodeError:
+            self.errorMessages.offer(value: "Internal error decoding token refresh data in game management view.")
+        case .keyChainRetrieveError:
+            self.loggedIn = false
+        case .urlError:
+            self.errorMessages.offer(value: "Internal URL error in token refresh for game management view.")
+        }
+    }
 }
 struct MenuItems: View {
     @Binding var loggedIn: Bool

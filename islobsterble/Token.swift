@@ -54,7 +54,6 @@ class ManagedAccessToken: ObservableObject {
                         DispatchQueue.main.async {
                             self.token = token
                         }
-                        let _ = print("Successfully retrieved new token")
                         successCompletion(token)
                     } else {
                         errorCompletion(RenewedRequestError.decodeError)
