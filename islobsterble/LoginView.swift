@@ -90,15 +90,7 @@ struct LoginView: View {
     }
     
     func login() {
-        let userNotificationCenter = UNUserNotificationCenter.current()
-        userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
-            if granted {
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            }
-        }
-        
+                
         let loginData = LoginData(username: self.username, password: self.password, deviceToken: self.notificationTracker.deviceTokenString)
         guard let encodedLoginData = try? JSONEncoder().encode(loginData) else {
             return
@@ -113,6 +105,15 @@ struct LoginView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
+                    let userNotificationCenter = UNUserNotificationCenter.current()
+                    userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+                        if granted {
+                            DispatchQueue.main.async {
+                                UIApplication.shared.registerForRemoteNotifications()
+                            }
+                        }
+                    }
+
                     let decoder = JSONDecoder()
                     decoder.dateDecodingStrategy = .secondsSince1970
                     if let tokenPair = try? decoder.decode(TokenPair.self, from: data) {
