@@ -33,6 +33,8 @@ struct DictionaryView: View {
             }
             TextField("", text: $queryWord)
                 .multilineTextAlignment(.center)
+                .disableAutocorrection(true)
+                .autocapitalization(.none)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textCase(.lowercase)
                 .padding(.all, 18)
