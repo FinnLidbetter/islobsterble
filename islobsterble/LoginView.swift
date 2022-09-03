@@ -48,6 +48,7 @@ struct LoginView: View {
                         TextField("Email", text: $username)
                             .multilineTextAlignment(.center)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.never)
                             .padding(.bottom, 18)
                         HStack {
                             Text("Password")

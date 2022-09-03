@@ -23,6 +23,7 @@ struct AddFriendView: View {
                 TextField("Enter Friend Key", text: $friendKey)
                     .multilineTextAlignment(.center)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textInputAutocapitalization(.characters)
                     .padding(.all, 18)
                 Button(action: self.submitAddFriend) {
                     Text("Submit")

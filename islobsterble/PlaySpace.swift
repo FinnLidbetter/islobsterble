@@ -655,7 +655,7 @@ struct PlaySpace: View {
                                     self.gameOver = true
                                 }
                                 if gamePlayer.player.id != gameState.fetcher_player_id {
-                                    message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tiles left. "
+                                    message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tile\(gamePlayer.num_tiles_remaining == 1 ? "" : "s") left. "
                                 }
                                 if gamePlayer.score > highestScore {
                                     highestScore = gamePlayer.score
