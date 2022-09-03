@@ -602,6 +602,7 @@ struct PlaySpace: View {
         }
         var request = URLRequest(url: url)
         request.addAuthorization(token: token)
+        request.addValue("v2", forHTTPHeaderField: "Accept-version")
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -611,11 +612,21 @@ struct PlaySpace: View {
                             self.wordMultipliers[modifier.row][modifier.column] = modifier.modifier.word_multiplier
                             self.letterMultipliers[modifier.row][modifier.column] = modifier.modifier.letter_multiplier
                         }
+                        if gameState.prev_move != nil {
+                            withAnimation {
+                                for playedTileIndex in 0..<gameState.prev_move!.played_tiles.count {
+                                    let playedTile = gameState.prev_move!.played_tiles[playedTileIndex]
+                                    self.boardLetters[playedTile.row][playedTile.column] = Letter(letter: Character(playedTile.tile.letter!), is_blank: playedTile.tile.is_blank, value: playedTile.tile.value)
+                                    self.locked[playedTile.row][playedTile.column] = true
+                                }
+                            }
+                        }
                         for playedTileIndex in 0..<gameState.board_state.count {
                             let playedTile = gameState.board_state[playedTileIndex]
                             self.boardLetters[playedTile.row][playedTile.column] = Letter(letter: Character(playedTile.tile.letter!), is_blank: playedTile.tile.is_blank, value: playedTile.tile.value)
                             self.locked[playedTile.row][playedTile.column] = true
                         }
+
                         self.clearRack()
                         self.slotNumber += 1
                         var rackIndex = 0
@@ -837,4 +848,5 @@ struct PrevMoveSerializer: Codable {
     let player_id: Int
     let display_name: String
     let exchanged_count: Int
+    let played_tiles: [PlayedTileSerializer]
 }
