@@ -33,7 +33,7 @@ enum FrontTaker {
 
 struct PlaySpace: View {
     let width: Int = Int(SCREEN_SIZE.width)
-    let gameId: String
+    @Binding var gameId: String?
     @Binding var loggedIn: Bool
     @Binding var inGame: Bool
     
@@ -104,7 +104,7 @@ struct PlaySpace: View {
                 ActionPanel(
                     loggedIn: self.$loggedIn,
                     inGame: self.$loggedIn,
-                    gameId: self.gameId,
+                    gameId: self.gameId!,
                     tilesRemaining: self.numTilesRemaining,
                     rackTilesOnBoard: self.rackTilesOnBoardCount > 0,
                     showingPicker: self.showBlankPicker || self.showExchangePicker || self.showPassConfirmer,
@@ -130,8 +130,17 @@ struct PlaySpace: View {
             self.getGameState()
         }
         .onChange(of: notificationTracker.refreshGames) { gamesToRefresh in
-            if gamesToRefresh.contains(self.gameId) {
-                notificationTracker.refreshGames.remove(self.gameId)
+            if notificationTracker.fromBackground {
+                let notifiedGameId = gamesToRefresh.first
+                if notifiedGameId != nil {
+                    self.gameId = notifiedGameId!
+                }
+                notificationTracker.fromBackground = false
+            }
+            if gamesToRefresh.contains(self.gameId!) {
+                if let gameIndex = notificationTracker.refreshGames.firstIndex(of: self.gameId!) {
+                    notificationTracker.refreshGames.remove(at: gameIndex)
+                }
                 self.getGameState()
                 DispatchQueue.main.async {
                     self.slotNumber += 1
@@ -248,7 +257,7 @@ struct PlaySpace: View {
             self.errorMessages.offer(value: "Internal error encoding turn data.")
             return
         }
-        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId!)") else {
             self.errorMessages.offer(value: "Internal error creating submit turn URL.")
             return
         }
@@ -596,7 +605,7 @@ struct PlaySpace: View {
     }
     
     private func getGameStateRequest(token: Token) {
-        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId)") else {
+        guard let url = URL(string: ROOT_URL + "api/game/\(self.gameId!)") else {
             self.errorMessages.offer(value: "Internal error creating get game state URL.")
             return
         }
@@ -730,18 +739,18 @@ struct PlaySpace: View {
         if self.rackTilesOnBoardCount == 0 {
             if let encoded = try? JSONEncoder().encode(self.rackLetters) {
                 let defaults = UserDefaults.standard
-                defaults.set(encoded, forKey: "slobsterble:\(self.gameId):rack")
+                defaults.set(encoded, forKey: "slobsterble:\(self.gameId!):rack")
             }
         }
     }
     private func retrieveRackState() -> [Letter] {
-        if let savedRackState = UserDefaults.standard.object(forKey: "slobsterble:\(self.gameId):rack") as? Data, let loadedRackState = try? JSONDecoder().decode([Letter].self, from: savedRackState) {
+        if let savedRackState = UserDefaults.standard.object(forKey: "slobsterble:\(self.gameId!):rack") as? Data, let loadedRackState = try? JSONDecoder().decode([Letter].self, from: savedRackState) {
             return loadedRackState
         }
         return []
     }
     private func clearPersistedRackState() {
-        UserDefaults.standard.removeObject(forKey: "slobsterble:\(self.gameId):rack")
+        UserDefaults.standard.removeObject(forKey: "slobsterble:\(self.gameId!):rack")
     }
     private func countLetters(letters: [Letter]) -> [Letter: Int] {
         var counts: [Letter: Int] = [:]

@@ -11,8 +11,9 @@ import SwiftUI
 
 class NotificationTracker: ObservableObject {
     @Published var deviceTokenString: String? = nil
-    @Published var refreshGames: Set<String> = []
+    @Published var refreshGames = [String]()
     @Published var refreshGameView = false
+    var fromBackground = false
     
     func setRefreshGameView(value: Bool) {
         self.refreshGameView = value

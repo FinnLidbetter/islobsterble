@@ -75,7 +75,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             completionHandler()
             return
         }
-        firstSceneDelegate.notificationTracker.refreshGames.insert(gameId)
+        firstSceneDelegate.notificationTracker.refreshGames.append(gameId)
+        firstSceneDelegate.notificationTracker.fromBackground = true
 
         // Always call the completion handler when done.
         completionHandler()
@@ -97,7 +98,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             completionHandler(UNNotificationPresentationOptions(rawValue: 0))
             return
         }
-        firstSceneDelegate.notificationTracker.refreshGames.insert(gameId)
+        firstSceneDelegate.notificationTracker.refreshGames.append(gameId)
 
         // Always call the completion handler when done.
         completionHandler(UNNotificationPresentationOptions(rawValue: 0))

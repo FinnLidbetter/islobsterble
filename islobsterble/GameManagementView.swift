@@ -26,7 +26,7 @@ struct GameManagementView: View {
                 MenuItems(loggedIn: self.$loggedIn, inGame: self.$inGame, selectedGameId: self.$selectedGameId).environmentObject(self.accessToken)
                 VStack {
                     if self.selectedGameId != nil {
-                        NavigationLink(destination: PlaySpace(gameId: self.selectedGameId!, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken), isActive: self.$inGame) {
+                        NavigationLink(destination: PlaySpace(gameId: self.$selectedGameId, loggedIn: self.$loggedIn, inGame: self.$inGame).environmentObject(self.accessToken), isActive: self.$inGame) {
                             EmptyView()
                         }.isDetailLink(false)
                     }
