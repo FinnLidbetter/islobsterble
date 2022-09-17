@@ -18,7 +18,9 @@ class SlotRow: ObservableObject {
     
     func update(index: Int, rect: CGRect) {
         if self.slots[index] != rect {
-            self.slots[index] = rect
+            DispatchQueue.main.async {
+                self.slots[index] = rect
+            }
         }
     }
 }

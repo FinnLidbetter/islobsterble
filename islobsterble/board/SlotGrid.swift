@@ -18,7 +18,9 @@ class SlotGrid: ObservableObject {
     
     func update(row: Int, column: Int, rect: CGRect) {
         if self.grid[row][column] != rect {
-            self.grid[row][column] = rect
+            DispatchQueue.main.async {
+                self.grid[row][column] = rect
+            }
         }
     }
 }
