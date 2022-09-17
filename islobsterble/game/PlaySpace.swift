@@ -78,6 +78,9 @@ struct PlaySpace: View {
     // Error message
     @StateObject private var errorMessages = ObservableQueue<String>()
     
+    // Variable for tracking refreshes after the bag is empty.
+    @State private var emptyBagRefreshCount = 0
+    
     // Environment variables.
     @ObservedObject var boardSlots = SlotGrid(num_rows: DEFAULT_ROWS, num_columns: DEFAULT_COLUMNS)
     @ObservedObject var rackSlots = SlotRow(num_slots: NUM_RACK_TILES)
@@ -674,8 +677,10 @@ struct PlaySpace: View {
                                 if gamePlayer.num_tiles_remaining == 0 {
                                     self.gameOver = true
                                 }
-                                if gamePlayer.player.id != gameState.fetcher_player_id {
-                                    message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tile\(gamePlayer.num_tiles_remaining == 1 ? "" : "s") left. "
+                                if self.emptyBagRefreshCount % SHOW_TILES_REMAINING_INTERVAL == 0 {
+                                    if gamePlayer.player.id != gameState.fetcher_player_id {
+                                        message += "\(gamePlayer.player.display_name) has \(gamePlayer.num_tiles_remaining) tile\(gamePlayer.num_tiles_remaining == 1 ? "" : "s") left. "
+                                    }
                                 }
                                 if gamePlayer.score > highestScore {
                                     highestScore = gamePlayer.score
@@ -692,7 +697,10 @@ struct PlaySpace: View {
                                     message = "Game over. It was a draw!"
                                 }
                             }
-                            self.errorMessages.offer(value: message)
+                            self.emptyBagRefreshCount += 1
+                            if message != "" {
+                                self.errorMessages.offer(value: message)
+                            }
                         }
                     }
                 }

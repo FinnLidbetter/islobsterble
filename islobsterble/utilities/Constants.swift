@@ -9,3 +9,4 @@
 import Foundation
 
 let CONNECTION_ERROR_STR = "Could not connect to the server. Please try again later."
+let SHOW_TILES_REMAINING_INTERVAL = 2
