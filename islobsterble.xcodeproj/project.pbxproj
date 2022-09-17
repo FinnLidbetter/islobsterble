@@ -151,6 +151,75 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B61BC2BB28D64F86006A4F2F /* board */ = {
+			isa = PBXGroup;
+			children = (
+				E7848EB325963E1100817736 /* BoardBackground.swift */,
+				E7848EB525963E6600817736 /* BoardForeground.swift */,
+				E7848EAD25963C3400817736 /* BoardSquare.swift */,
+				E7848EB725963EB100817736 /* SlotGrid.swift */,
+			);
+			path = board;
+			sourceTree = "<group>";
+		};
+		B61BC2BC28D64FA1006A4F2F /* rack */ = {
+			isa = PBXGroup;
+			children = (
+				E7848EB925963EFC00817736 /* RackForeground.swift */,
+				E7848EBB25963F2F00817736 /* RackBackground.swift */,
+				E7848EAF25963CB700817736 /* RackSquare.swift */,
+				E7848EBD25963F7700817736 /* SlotRow.swift */,
+			);
+			path = rack;
+			sourceTree = "<group>";
+		};
+		B61BC2BD28D64FC0006A4F2F /* utilities */ = {
+			isa = PBXGroup;
+			children = (
+				E7848EC12596400000817736 /* Position.swift */,
+				E7848ECB2597DC8600817736 /* UtilityFuncs.swift */,
+				E7848EC52597897500817736 /* IntQueue.swift */,
+				E71C57FE26A386EE00B33BA0 /* Constants.swift */,
+				B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */,
+			);
+			path = utilities;
+			sourceTree = "<group>";
+		};
+		B61BC2C028D650B1006A4F2F /* game */ = {
+			isa = PBXGroup;
+			children = (
+				E7848EC32596D29E00817736 /* BlankPicker.swift */,
+				E7848EB125963D3000817736 /* Letter.swift */,
+				E7848EBF25963FBE00817736 /* Tile.swift */,
+				E7848EC725978A0800817736 /* ActionPanel.swift */,
+				E7848EC92597ADEB00817736 /* DictionaryView.swift */,
+				E7848ECD2597E6AF00817736 /* ExchangePicker.swift */,
+				B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */,
+				E7848ECF2598113400817736 /* ScorePanel.swift */,
+				E7E7888125AE8EB8000042D9 /* MoveHistoryView.swift */,
+				E7848EE125995E8400817736 /* PlaySpace.swift */,
+				B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */,
+			);
+			path = game;
+			sourceTree = "<group>";
+		};
+		B61BC2C228D650FC006A4F2F /* management_views */ = {
+			isa = PBXGroup;
+			children = (
+				E7848ED12598F3F900817736 /* LoginView.swift */,
+				E7848ED32598F86700817736 /* RegistrationView.swift */,
+				B612F4D228959025001745CD /* ForgotPasswordView.swift */,
+				E7848ED52598FD5500817736 /* GameManagementView.swift */,
+				E7848ED7259927F800817736 /* SettingsView.swift */,
+				E7848ED92599320D00817736 /* StatsView.swift */,
+				E7848EDB2599415900817736 /* FriendsView.swift */,
+				E7848EDD259945A300817736 /* AddFriendView.swift */,
+				E7848EDF25994DEF00817736 /* NewGameView.swift */,
+				B60942D928B6FBBE00307C53 /* DeleteAccountView.swift */,
+			);
+			path = management_views;
+			sourceTree = "<group>";
+		};
 		E703D7AA2579CDDF006C7731 = {
 			isa = PBXGroup;
 			children = (
@@ -175,50 +244,21 @@
 			isa = PBXGroup;
 			children = (
 				E71C57F2269D201A00B33BA0 /* islobsterble.entitlements */,
+				E703D7C42579CDE3006C7731 /* Info.plist */,
+				E703D7BC2579CDE3006C7731 /* Assets.xcassets */,
 				E703D7B62579CDDF006C7731 /* AppDelegate.swift */,
 				E703D7B82579CDDF006C7731 /* SceneDelegate.swift */,
 				E703D7BA2579CDDF006C7731 /* ContentView.swift */,
-				E703D7BC2579CDE3006C7731 /* Assets.xcassets */,
-				E703D7C42579CDE3006C7731 /* Info.plist */,
+				B61BC2C028D650B1006A4F2F /* game */,
+				B61BC2C228D650FC006A4F2F /* management_views */,
+				B61BC2BD28D64FC0006A4F2F /* utilities */,
+				B61BC2BC28D64FA1006A4F2F /* rack */,
+				B61BC2BB28D64F86006A4F2F /* board */,
 				E703D7BE2579CDE3006C7731 /* Preview Content */,
-				E7848EC32596D29E00817736 /* BlankPicker.swift */,
-				E7848EB325963E1100817736 /* BoardBackground.swift */,
-				E7848EB525963E6600817736 /* BoardForeground.swift */,
-				E7848EAD25963C3400817736 /* BoardSquare.swift */,
-				E7848EB925963EFC00817736 /* RackForeground.swift */,
-				E7848EBB25963F2F00817736 /* RackBackground.swift */,
-				E7848EAF25963CB700817736 /* RackSquare.swift */,
-				E7848EB725963EB100817736 /* SlotGrid.swift */,
-				E7848EBD25963F7700817736 /* SlotRow.swift */,
-				E7848EB125963D3000817736 /* Letter.swift */,
-				E7848EBF25963FBE00817736 /* Tile.swift */,
-				E7848EC12596400000817736 /* Position.swift */,
-				E7848EC52597897500817736 /* IntQueue.swift */,
-				E7848EC725978A0800817736 /* ActionPanel.swift */,
-				E7848EC92597ADEB00817736 /* DictionaryView.swift */,
-				E7848ECD2597E6AF00817736 /* ExchangePicker.swift */,
-				B6C1D1AE284D404E003ED747 /* PassConfirmer.swift */,
-				E7848ECB2597DC8600817736 /* UtilityFuncs.swift */,
-				E7848ECF2598113400817736 /* ScorePanel.swift */,
-				E7E7888125AE8EB8000042D9 /* MoveHistoryView.swift */,
-				E7848ED12598F3F900817736 /* LoginView.swift */,
-				E7848ED32598F86700817736 /* RegistrationView.swift */,
-				B612F4D228959025001745CD /* ForgotPasswordView.swift */,
-				E7848ED52598FD5500817736 /* GameManagementView.swift */,
-				E7848ED7259927F800817736 /* SettingsView.swift */,
-				E7848ED92599320D00817736 /* StatsView.swift */,
-				E7848EDB2599415900817736 /* FriendsView.swift */,
-				E7848EDD259945A300817736 /* AddFriendView.swift */,
-				E7848EDF25994DEF00817736 /* NewGameView.swift */,
-				E7848EE125995E8400817736 /* PlaySpace.swift */,
 				E74C970D26646753004054DB /* Token.swift */,
 				E732B9FE266D21D000665926 /* KeyChain.swift */,
-				E71C57F626A11F1B00B33BA0 /* ErrorView.swift */,
-				E71C57FE26A386EE00B33BA0 /* Constants.swift */,
 				E75FB51926A4C2A9005B326A /* NotificationTracker.swift */,
-				B652A9EC26F02F850079C0D8 /* ScoreComputer.swift */,
-				B64230BB289DAD9200A2FEF1 /* ObservableQueue.swift */,
-				B60942D928B6FBBE00307C53 /* DeleteAccountView.swift */,
+				E71C57F626A11F1B00B33BA0 /* ErrorView.swift */,
 			);
 			path = islobsterble;
 			sourceTree = "<group>";
