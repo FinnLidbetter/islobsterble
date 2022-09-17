@@ -61,13 +61,13 @@ struct LoginView: View {
                             EmptyView()
                         }.isDetailLink(false)
                         HStack {
-                            Button(action: { self.login() }) {
-                                Text("Login")
-                            }.padding(.leading, 18)
-                            Spacer()
                             NavigationLink(destination: ForgotPasswordView()) {
                                 Text("Forgot password?").fontWeight(.regular)
-                            }
+                            }.padding(.leading, 18)
+                            Spacer()
+                            Button(action: { self.login() }) {
+                                Text("Login")
+                            }.padding(.trailing, 18)
                         }.padding(.top, 18)
                         Button(action: { self.resendVerification() }) {
                             Text("Re-send Verification Email")
