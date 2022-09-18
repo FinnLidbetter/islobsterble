@@ -65,9 +65,6 @@ struct PlaySpace: View {
     @State private var prevBlankRow: Int? = nil
     @State private var prevBlankColumn: Int? = nil
     
-    // Dumb hack to try to redraw the board/rack squares and re-process the geometry
-    @State private var slotNumber = 0
-    
     // Variables for the exchange picker.
     @State private var showExchangePicker = false
     @State private var exchangeChosen = [Bool](repeating: false, count: NUM_RACK_TILES)
@@ -124,7 +121,6 @@ struct PlaySpace: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: backToMenu, trailing: Button(action: {
             self.getGameState()
-            self.slotNumber += 1
         }) {
             Image(systemName: "arrow.clockwise").font(.system(size: 25.0))
         })
@@ -145,17 +141,11 @@ struct PlaySpace: View {
                     notificationTracker.refreshGames.remove(at: gameIndex)
                 }
                 self.getGameState()
-                DispatchQueue.main.async {
-                    self.slotNumber += 1
-                }
             }
         }
         .onChange(of: notificationTracker.refreshGameView) { refreshGameView in
             if refreshGameView {
                 self.getGameState()
-                DispatchQueue.main.async {
-                    self.slotNumber += 1
-                }
                 notificationTracker.setRefreshGameView(value: false)
             }
         }
@@ -557,7 +547,7 @@ struct PlaySpace: View {
         for row in 0..<self.numBoardRows {
             var boardSquareRow: [BoardSquare] = []
             for column in 0..<self.numBoardColumns {
-                boardSquareRow.append(BoardSquare(number: self.slotNumber, size: boardSquareSize, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
+                boardSquareRow.append(BoardSquare(size: boardSquareSize, letterMultiplier: self.letterMultipliers[row][column], wordMultiplier: self.wordMultipliers[row][column], row: row, column: column))
             }
             boardSquares.append(boardSquareRow)
         }
@@ -598,7 +588,7 @@ struct PlaySpace: View {
         var rackSquares: [RackSquare] = []
         let rackSquareSize = self.getRackSquareSize()
         for index in 0..<NUM_RACK_TILES {
-            rackSquares.append(RackSquare(number: self.slotNumber, size: rackSquareSize, color: Color.clear, index: index))
+            rackSquares.append(RackSquare(size: rackSquareSize, color: Color.clear, index: index))
         }
         return rackSquares
     }
@@ -640,7 +630,6 @@ struct PlaySpace: View {
                         }
 
                         self.clearRack()
-                        self.slotNumber += 1
                         var rackIndex = 0
                         for tileCountIndex in 0..<gameState.rack.count {
                             let tileCount = gameState.rack[tileCountIndex]

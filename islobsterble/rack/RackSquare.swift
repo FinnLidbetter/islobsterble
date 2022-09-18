@@ -10,7 +10,6 @@
 import SwiftUI
 
 struct RackSquare: View {
-    let number: Int
     let size: Int
     let color: Color
     let index: Int
@@ -19,7 +18,6 @@ struct RackSquare: View {
     var body: some View {
         ZStack {
             Rectangle().fill(self.color)
-            Text("\(self.number)").foregroundColor(.clear)
         }
             .frame(width: CGFloat(self.size), height: CGFloat(self.size))
             .overlay(

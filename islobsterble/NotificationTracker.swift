@@ -16,6 +16,8 @@ class NotificationTracker: ObservableObject {
     var fromBackground = false
     
     func setRefreshGameView(value: Bool) {
-        self.refreshGameView = value
+        DispatchQueue.main.async {
+            self.refreshGameView = value
+        }
     }
 }
