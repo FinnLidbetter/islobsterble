@@ -617,7 +617,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = islobsterble/islobsterble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0.1;
+				CURRENT_PROJECT_VERSION = 1.0.2;
 				DEVELOPMENT_ASSET_PATHS = "\"islobsterble/Preview Content\"";
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
@@ -641,7 +641,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = islobsterble/islobsterble.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.0.1;
+				CURRENT_PROJECT_VERSION = 1.0.2;
 				DEVELOPMENT_ASSET_PATHS = "\"islobsterble/Preview Content\"";
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
