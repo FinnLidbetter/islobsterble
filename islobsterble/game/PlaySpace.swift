@@ -195,6 +195,9 @@ struct PlaySpace: View {
         }
         let turn = TurnSerializer(played_tiles: playedTiles)
         self.showExchangePicker = false
+        for rackIndex in 0..<NUM_RACK_TILES {
+            self.exchangeChosen[rackIndex] = false
+        }
         self.submitTurn(turn: turn, token: token)
     }
     
