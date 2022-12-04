@@ -51,7 +51,7 @@ struct ActionPanel: View {
                     }
                     Text("\(self.tilesRemaining)").font(.system(size: 12.0)).padding(.bottom, 5)
                 }.frame(width: 60, height: 50)
-            }
+            }.allowsHitTesting(self.tilesRemaining > 0)
             Spacer()
             // Shuffle/recall
             Button(action: self.rackTilesOnBoard ? self.onRecall : self.onShuffle) {
