@@ -12,6 +12,7 @@ import SwiftUI
 let OPPONENTS_MAX = 3
 
 struct NewGameView: View {
+    @Environment(\.colorScheme) var colorScheme
     @Binding var loggedIn: Bool
     @Binding var inGame: Bool
     @Binding var selectedGameId: String?
@@ -19,6 +20,7 @@ struct NewGameView: View {
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
     @State private var errorMessages = ObservableQueue<String>()
+    @State private var loading: Bool = false
     
     var body: some View {
         ZStack {
@@ -44,6 +46,12 @@ struct NewGameView: View {
                     self.fetchData()
                 }
             }
+            ProgressView("Loading..")
+                .padding()
+                .frame(width: SCREEN_SIZE.width * 0.6, height: SCREEN_SIZE.height * 0.2)
+                .background(colorScheme == .dark ? Color(.black) : Color(.cyan))
+                .clipShape(RoundedRectangle(cornerRadius: 20.0, style: .continuous)).shadow(radius: 6, x: -8, y: -8)
+                .offset(y: self.loading ? 0 : SCREEN_SIZE.height)
             ErrorView(errorMessages: self.errorMessages)
         }
     }
@@ -59,6 +67,7 @@ struct NewGameView: View {
         }
         var request = URLRequest(url: url)
         request.addAuthorization(token: token)
+        self.loading = true
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -74,6 +83,7 @@ struct NewGameView: View {
             } else {
                 self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
+            self.loading = false
         }.resume()
     }
     
@@ -103,6 +113,7 @@ struct NewGameView: View {
         request.addAuthorization(token: token)
         request.httpMethod = "POST"
         request.httpBody = encodedOpponents
+        self.loading = true
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -116,6 +127,7 @@ struct NewGameView: View {
             } else {
                 self.errorMessages.offer(value: CONNECTION_ERROR_STR)
             }
+            self.loading = false
         }.resume()
     }
 
