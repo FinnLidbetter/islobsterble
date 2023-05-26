@@ -24,7 +24,13 @@ struct BlankPicker: View {
                     Button(action: {
                         self.onSelection(Character(self.alphabet[index]))
                     }) {
-                        Text(self.alphabet[index])
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / 6,
+                             face: Letter(letter: Character(self.alphabet[index]), is_blank: true, value: nil),
+                             position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
+                             allowDrag: false,
+                             onChanged: dummyOnChanged,
+                             onEnded: dummyOnEnded
+                        )
                     }
                     Spacer()
                 }
@@ -36,7 +42,13 @@ struct BlankPicker: View {
                     Button(action: {
                         self.onSelection(Character(self.alphabet[index]))
                     }) {
-                        Text(self.alphabet[index])
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / 6,
+                             face: Letter(letter: Character(self.alphabet[index]), is_blank: true, value: nil),
+                             position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
+                             allowDrag: false,
+                             onChanged: dummyOnChanged,
+                             onEnded: dummyOnEnded
+                        )
                     }
                     Spacer()
                 }
@@ -48,7 +60,13 @@ struct BlankPicker: View {
                     Button(action: {
                         self.onSelection(Character(self.alphabet[index]))
                     }) {
-                        Text(self.alphabet[index])
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / 6,
+                             face: Letter(letter: Character(self.alphabet[index]), is_blank: true, value: nil),
+                             position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
+                             allowDrag: false,
+                             onChanged: dummyOnChanged,
+                             onEnded: dummyOnEnded
+                        )
                     }
                     Spacer()
                 }
@@ -60,7 +78,13 @@ struct BlankPicker: View {
                     Button(action: {
                         self.onSelection(Character(self.alphabet[index]))
                     }) {
-                        Text(self.alphabet[index])
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / 6,
+                             face: Letter(letter: Character(self.alphabet[index]), is_blank: true, value: nil),
+                             position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
+                             allowDrag: false,
+                             onChanged: dummyOnChanged,
+                             onEnded: dummyOnEnded
+                        )
                     }
                     Spacer()
                 }
@@ -72,14 +96,20 @@ struct BlankPicker: View {
                     Button(action: {
                         self.onSelection(Character(self.alphabet[index]))
                     }) {
-                        Text(self.alphabet[index])
+                        Tile(size: Int(SCREEN_SIZE.width * 0.7) / 6,
+                             face: Letter(letter: Character(self.alphabet[index]), is_blank: true, value: nil),
+                             position: Position(boardRow: nil, boardColumn: nil, rackIndex: nil),
+                             allowDrag: false,
+                             onChanged: dummyOnChanged,
+                             onEnded: dummyOnEnded
+                        )
                     }
                     Spacer()
                 }
             }
         }
         .padding()
-        .frame(width: SCREEN_SIZE.width * 0.9, height: SCREEN_SIZE.height * 0.3)
+        .frame(width: SCREEN_SIZE.width * 0.9, height: SCREEN_SIZE.height * 0.4)
         .background(colorScheme == .dark ? Color(.black) : Color(.cyan))
         .clipShape(RoundedRectangle(cornerRadius: 20.0, style: .continuous)).shadow(radius: 6, x: -8, y: -8)
         .offset(y: self.isPresented ? 0 : SCREEN_SIZE.height)
