@@ -10,8 +10,7 @@ import SwiftUI
 
 struct ErrorView: View {
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var errorMessages: ObservableQueue<String>
-    
+    @ObservedObject var errorMessages: ErrorMessageQueue
     var body: some View {
         ZStack {
             HStack {

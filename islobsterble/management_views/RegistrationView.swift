@@ -15,7 +15,7 @@ struct RegistrationView: View {
     @State private var confirmPassword: String = ""
     @State private var displayName: String = ""
     @State private var message: String = ""
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     @State private var success = false
     
     var body: some View {

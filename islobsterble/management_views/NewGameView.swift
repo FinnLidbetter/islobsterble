@@ -19,7 +19,7 @@ struct NewGameView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friends: [Friend] = []
     @State private var chosenOpponents: Set<Int> = Set([])
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     @State private var loading: Bool = false
     
     var body: some View {

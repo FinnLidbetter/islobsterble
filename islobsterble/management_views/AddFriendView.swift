@@ -14,7 +14,7 @@ struct AddFriendView: View {
     @EnvironmentObject var accessToken: ManagedAccessToken
     @State private var friendKey = ""
     @State private var message = ""
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     
     var body: some View {
         ZStack {

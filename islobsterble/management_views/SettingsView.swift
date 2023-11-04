@@ -21,7 +21,7 @@ struct SettingsView: View {
     @State private var dictionaryNames = [DEFAULT_DICTIONARY_NAME]
     @State private var dictionaryIDs = [DEFAULT_DICTIONARY_ID]
     @State private var currentDictionaryIndex = 0
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     
     var body: some View {
         ZStack {

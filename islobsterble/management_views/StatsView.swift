@@ -20,7 +20,7 @@ struct StatsView: View {
     @State private var bestCombinedGameScore = 0
     @State private var friendsStats: [FriendData] = []
     @State private var selection: Set<Int> = []
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     
     var body: some View {
         ZStack {

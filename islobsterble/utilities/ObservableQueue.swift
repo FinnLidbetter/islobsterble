@@ -73,6 +73,16 @@ class ObservableQueue<T>: ObservableObject {
     }
 }
 
+class ErrorMessageQueue: ObservableQueue<String> {
+    
+    override func offer(value: String) {
+        if peek() == value {
+            return
+        }
+        super.offer(value: value)
+    }
+}
+
 class QueueNode<T> {
     var prev: QueueNode<T>?
     var next: QueueNode<T>?

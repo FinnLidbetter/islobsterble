@@ -11,7 +11,7 @@ import SwiftUI
 struct ForgotPasswordView: View {
     
     @State private var username: String = ""
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     @State private var infoMessage: String = ""
     
     var body: some View {

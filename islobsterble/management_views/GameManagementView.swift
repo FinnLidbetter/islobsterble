@@ -15,7 +15,7 @@ struct GameManagementView: View {
     @Binding var loggedIn: Bool
     @State private var selectedGameId: String? = nil
     @State private var inGame: Bool = false
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     @State private var requester: Player = Player(display_name: "", id: -1)
     @State private var activeGames = [GameInfoV2]()
     @State private var completedGames = [GameInfoV2]()

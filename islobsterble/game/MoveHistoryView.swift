@@ -17,7 +17,7 @@ struct MoveHistoryView: View {
     @Binding var inGame: Bool
     @State private var playerMoves: [PlayerMovesSerializer] = []
     @State private var selection: Set<Int> = []
-    @State private var errorMessages = ObservableQueue<String>()
+    @State private var errorMessages = ErrorMessageQueue()
     
     var body: some View {
         ZStack {

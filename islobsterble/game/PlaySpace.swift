@@ -73,7 +73,7 @@ struct PlaySpace: View {
     @State private var showPassConfirmer = false
     
     // Error message
-    @StateObject private var errorMessages = ObservableQueue<String>()
+    @StateObject private var errorMessages = ErrorMessageQueue()
     
     // Variable for tracking refreshes after the bag is empty.
     @State private var emptyBagRefreshCount = 0
