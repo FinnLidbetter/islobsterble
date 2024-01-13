@@ -36,7 +36,7 @@ extension Letter: Decodable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         letter = try Character(values.decode(String.self, forKey: .letter))
         is_blank = try values.decode(Bool.self, forKey: .is_blank)
-        value = try values.decode(Int.self, forKey: .value)
+        value = try values.decode(Int?.self, forKey: .value)
     }
 }
 extension Letter: Encodable {
