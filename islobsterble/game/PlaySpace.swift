@@ -607,7 +607,7 @@ struct PlaySpace: View {
         }
         var request = URLRequest(url: url)
         request.addAuthorization(token: token)
-        request.addValue("v2", forHTTPHeaderField: "Accept-version")
+        request.addValue("v3", forHTTPHeaderField: "Accept-version")
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error == nil, let data = data, let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
@@ -660,10 +660,13 @@ struct PlaySpace: View {
                         self.turnNumber = gameState.turn_number
                         self.prevMove = gameState.prev_move
                         self.numTilesRemaining = gameState.num_tiles_remaining
-                        if gameState.num_tiles_remaining == 0 {
+                        if gameState.num_tiles_remaining == 0 || gameState.completed != nil {
                             var message = ""
-                            var highestScore = 0
+                            var highestScore = -987654321
                             var highestScorers: [String] = []
+                            if gameState.completed != nil {
+                                self.gameOver = true
+                            }
                             for gamePlayerIndex in 0..<gameState.game_players.count {
                                 let gamePlayer = gameState.game_players[gamePlayerIndex]
                                 if gamePlayer.num_tiles_remaining == 0 {
@@ -812,6 +815,7 @@ struct GameSerializer: Codable {
     let rack: [TileCountSerializer]
     let prev_move: PrevMoveSerializer?
     let fetcher_player_id: Int
+    let completed: Date?
 }
 struct PlayedTileSerializer: Codable {
     let tile: TileSerializer

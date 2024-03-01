@@ -9,7 +9,7 @@
 import UIKit
 import SwiftUI
 
-//let ROOT_URL = "http://192.168.0.16:5001/"
+// let ROOT_URL = "http://10.0.0.221:5001/"
 let ROOT_URL = "https://rerack.finnlidbetter.com/"
 
 @UIApplicationMain

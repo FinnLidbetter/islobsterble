@@ -276,7 +276,7 @@ struct GameInfoV2: Codable {
     
     func headerString(requester: Player) -> String {
         var bestPlayer = ""
-        var bestScore = -1
+        var bestScore = -987654321
         var tie = false
         for gamePlayer in self.game_players {
             if gamePlayer.score > bestScore {
@@ -303,37 +303,6 @@ struct GameInfoV2: Codable {
     }
 }
 
-struct GameInfo: Codable {
-    let id: Int
-    var game_players: [GamePlayer]
-    let whose_turn_name: String
-    let started: Date
-    let completed: Date?
-    
-    func headerString() -> String {
-        var bestPlayer = ""
-        var bestScore = -1
-        var tie = false
-        for gamePlayer in self.game_players {
-            if gamePlayer.score > bestScore {
-                bestScore = gamePlayer.score
-                bestPlayer = gamePlayer.player.display_name
-                tie = false
-            } else if gamePlayer.score == bestScore {
-                tie = true
-            }
-        }
-        if completed == nil {
-            return "\(self.whose_turn_name)'s turn"
-        } else {
-            if tie {
-                return "It was a draw!"
-            } else {
-                return "\(bestPlayer) won!"
-            }
-        }
-    }
-}
 struct GamePlayer: Codable {
     let score: Int
     let player: Player
