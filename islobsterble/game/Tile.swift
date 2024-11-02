@@ -9,7 +9,7 @@
 
 import SwiftUI
 
-let TILE_COLOR = Color(red: 255 / 255, green: 238 / 255, blue: 172 / 255)
+let TILE_COLOR = Color(red: 255 / 255, green: 239 / 255, blue: 172 / 255)
 
 struct Tile: View {
     @State private var dragAmount = CGSize.zero
