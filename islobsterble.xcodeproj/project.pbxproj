@@ -622,6 +622,7 @@
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = islobsterble/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "ReRack Legacy";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -646,6 +647,7 @@
 				DEVELOPMENT_TEAM = S45S4TA859;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = islobsterble/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "ReRack Legacy";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
